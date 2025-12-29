@@ -13,6 +13,12 @@
         .hero { padding: 80px 0; border-bottom: 1px solid #222; }
         .hero h1 { font-size: 3rem; margin: 0; color: #fff; }
         .section-title { margin-top: 60px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 4px; color: #ffcc00; }
+        
+        /* 简历区域标题行 */
+        .resume-header { display: flex; justify-content: space-between; align-items: center; margin-top: 60px; }
+        .download-btn { display: inline-block; padding: 8px 18px; border: 1px solid #ffcc00; color: #ffcc00; text-decoration: none; border-radius: 4px; font-size: 0.8rem; transition: 0.3s; }
+        .download-btn:hover { background: #ffcc00; color: #000; }
+
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; margin: 40px 0; }
         .work-item { background: #111; border: 1px solid #222; border-radius: 8px; overflow: hidden; }
         .media-container { width: 100%; aspect-ratio: 16/9; background: #000; }
@@ -44,7 +50,10 @@
         </div>
     </div>
 
-    <h2 id="resume" class="section-title">简历 / RESUME</h2>
+    <div id="resume" class="resume-header">
+        <h2 class="section-title" style="margin-top:0;">简历 / RESUME</h2>
+        <a href="resume.pdf" class="download-btn" download>点击下载 PDF 简历</a>
+    </div>
     <iframe src="resume.pdf" class="resume-preview"></iframe>
 
     <h2 id="contact" class="section-title">联系方式 / CONTACT</h2>
