@@ -16,49 +16,49 @@
             overscroll-behavior-y: contain; 
         }
 
-        /* 1. 下拉刷新组件 */
+        /* 下拉刷新组件 - 修复动画缺失 */
         #pull-to-refresh {
-            position: fixed; top: -60px; left: 0; width: 100%; height: 60px;
+            position: fixed; top: -70px; left: 0; width: 100%; height: 70px;
             display: flex; align-items: center; justify-content: center;
             z-index: 5000; pointer-events: none;
+            transition: top 0.3s cubic-bezier(0.25, 1, 0.5, 1);
         }
         .spinner {
-            width: 28px; height: 28px; border: 2px solid rgba(255,204,0,0.1);
-            border-top: 2px solid var(--accent); border-radius: 50%;
-            transition: transform 0.1s linear;
+            width: 30px; height: 30px; 
+            border: 3px solid rgba(255,204,0,0.1);
+            border-top: 3px solid var(--accent); 
+            border-radius: 50%;
+            will-change: transform;
         }
-        .spinner.spinning { animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        /* 强制旋转动画类 */
+        .spinning { animation: spin 0.8s linear infinite !important; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         #page-wrapper { transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); will-change: transform; }
 
-        /* 2. 导航栏修复 */
+        /* 导航栏 */
         nav { width: 100%; position: sticky; top: 0; background: rgba(10,10,10,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid #222; z-index: 1000; }
         .nav-inner { padding: 20px 0; display: flex; justify-content: space-between; align-items: center; width: 92%; max-width: 1400px; margin: 0 auto; }
         .logo { color: var(--accent); font-weight: bold; font-size: 1.4rem; letter-spacing: 2px; cursor: pointer; }
-        .nav-links a { 
-            color: #888; text-decoration: none; margin-left: 25px; font-size: 0.9rem; 
-            cursor: pointer; transition: 0.3s; 
-        }
-        .nav-links a:hover, .nav-links a.active { color: var(--accent); text-shadow: 0 0 10px rgba(255,204,0,0.3); }
+        .nav-links a { color: #888; text-decoration: none; margin-left: 25px; font-size: 0.9rem; cursor: pointer; transition: 0.3s; }
+        .nav-links a.active { color: var(--accent); text-shadow: 0 0 10px rgba(255,204,0,0.3); }
 
-        /* 3. 首页作品放大效果修复 */
+        /* 内容区 */
         .container { width: 92%; max-width: 1400px; margin: 0 auto; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 40px; }
-        .item { position: relative; height: 320px; cursor: pointer; z-index: 1; transition: z-index 0s 0.5s; }
+        .item { position: relative; height: 320px; cursor: pointer; transition: z-index 0s 0.5s; }
         .item-inner {
             position: absolute; width: 100%; background: #111; border: 1px solid #222; 
             border-radius: 12px; overflow: hidden; 
             transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .item:hover { z-index: 50; transition: z-index 0s; }
-        .item:hover .item-inner { transform: scale(1.05); border-color: var(--accent); box-shadow: 0 15px 40px rgba(0,0,0,0.5); }
+        .item:hover .item-inner { transform: scale(1.05); border-color: var(--accent); }
         
-        .media { width: 100%; height: 250px; background: #000; transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
-        .media video, .media img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-        .info { padding: 15px; font-size: 0.85rem; color: #666; text-align: center; }
+        .media { width: 100%; height: 250px; background: #000; transition: height 0.6s ease; }
+        .media video, .media img { width: 100%; height: 100%; object-fit: contain; }
 
-        /* 弹窗作品激活效果 */
+        /* 弹窗激活样式 */
         #accordion-root .item.active .item-inner {
             transform: scale(1.08) translateY(-80px);
             border-color: var(--accent); z-index: 100;
@@ -66,31 +66,26 @@
         }
         #accordion-root .item.active .media { height: 500px; }
 
-        /* 4. 弹窗样式 */
         #portfolio-modal { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg); z-index: 2000; 
-            transform: translateY(100%);
-            transition: transform 0.6s cubic-bezier(0.32, 1, 0.23, 1);
-            overflow-y: scroll;
+            background: var(--bg); z-index: 2000; transform: translateY(100%);
+            transition: transform 0.6s cubic-bezier(0.32, 1, 0.23, 1); overflow-y: scroll;
         }
         #portfolio-modal.active { display: block; transform: translateY(0); }
-        .modal-header { position: sticky; top: 0; background: rgba(10,10,10,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #222; z-index: 2001; }
 
-        /* 5. 页脚与按钮 */
-        .footer-card { background: #111; padding: 40px; border-radius: 12px; border: 1px solid #222; margin-bottom: 40px; }
+        .footer-card { background: #111; padding: 40px; border-radius: 12px; border: 1px solid #222; margin-bottom: 20px; }
         .dl-btn { display: inline-block; padding: 14px 30px; border: 1px solid var(--accent); color: var(--accent); border-radius: 30px; font-weight: bold; cursor: pointer; background: transparent; transition: 0.3s; }
         .dl-btn:hover { background: var(--accent); color: #000; }
 
         .accordion-header { padding: 40px 0; cursor: pointer; display: flex; justify-content: space-between; border-bottom: 1px solid #222; }
         .accordion-content { display: none; opacity: 0; transition: 0.5s; }
         .accordion-content.show { display: block; opacity: 1; }
-        .arrow { transition: transform 0.4s; color: #444; }
+        .arrow { transition: transform 0.4s; }
 
         .section-title { color: var(--accent); border-left: 3px solid var(--accent); padding-left: 15px; margin: 100px 0 30px; text-transform: uppercase; letter-spacing: 4px; font-size: 0.8rem; }
     </style>
 </head>
-<body onclick="clearActiveItems(event)">
+<body>
 
 <div id="pull-to-refresh">
     <div class="spinner" id="refresh-spinner"></div>
@@ -99,8 +94,8 @@
 <div id="page-wrapper">
     <nav>
         <div class="nav-inner">
-            <div class="logo" onclick="manualRefresh()">JLWLIMOU</div>
-            <div class="nav-links" id="main-nav">
+            <div class="logo" onclick="manualTriggerRefresh()">JLWLIMOU</div>
+            <div class="nav-links">
                 <a onclick="scrollToSection('featured', this)" class="active">精选</a>
                 <a onclick="scrollToSection('resume', this)">简历</a>
                 <a onclick="scrollToSection('contact', this)">联系</a>
@@ -109,9 +104,9 @@
     </nav>
 
     <div class="container" id="home-content" style="opacity: 0; transition: 0.8s;">
-        <header class="hero">
-            <h1>Focus on<br>Maya Animation.</h1>
-            <p id="about-text" style="color:#888; max-width:800px; line-height:1.6;">...</p>
+        <header class="hero" style="padding: 120px 0 40px;">
+            <h1 style="font-size: clamp(2.5rem, 6vw, 4.5rem); margin:0; line-height:1.1;">Focus on<br>Maya Animation.</h1>
+            <p id="about-text" style="color:#888; max-width:800px; line-height:1.6; margin-top:20px;">数据同步中...</p>
         </header>
 
         <div id="featured">
@@ -123,33 +118,25 @@
             <button class="dl-btn" style="color:#888; border-color:#444" onclick="toggleModal(true)">查看完整列表 / MORE WORKS +</button>
         </div>
 
-        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px; padding-bottom: 100px;">
             <div id="resume" class="footer-card">
-                <span style="color:var(--accent); font-size:0.75rem; display:block; margin-bottom:15px; letter-spacing:2px;">RESUME / 简历</span>
-                <p style="color:#666; font-size:0.9rem; margin-bottom:25px;">获取最新的个人简历 PDF 文件</p>
+                <span style="color:var(--accent); font-size:0.75rem; display:block; margin-bottom:15px;">RESUME / 简历</span>
                 <button class="dl-btn" id="resume-dl-btn">下载简历 (PDF)</button>
             </div>
             <div id="contact" class="footer-card">
-                <span style="color:var(--accent); font-size:0.75rem; display:block; margin-bottom:15px; letter-spacing:2px;">CONTACT / 联系</span>
-                <div style="margin-bottom:15px">
-                    <small style="color:#444; display:block">EMAIL</small>
-                    <span id="email-val" style="color:#fff; font-family:monospace;">-</span>
-                </div>
-                <div>
-                    <small style="color:#444; display:block">PHONE</small>
-                    <span id="phone-val" style="color:#fff; font-family:monospace;">-</span>
-                </div>
+                <span style="color:var(--accent); font-size:0.75rem; display:block; margin-bottom:15px;">CONTACT / 联系</span>
+                <div style="margin-bottom:10px;"><small style="color:#444;">EMAIL</small><br><span id="email-val">-</span></div>
+                <div><small style="color:#444;">PHONE</small><br><span id="phone-val">-</span></div>
             </div>
         </div>
-        <footer style="padding: 60px 0; text-align:center; color:#333; font-size:0.8rem;">&copy; 2025 JLWLIMOU. 所有作品均为原创。</footer>
     </div>
 </div>
 
 <div id="portfolio-modal">
     <div class="modal-header">
         <div class="nav-inner">
-            <h2 style="margin:0; font-size:1.1rem; color:var(--accent); letter-spacing:2px;">FULL PROJECT LIST</h2>
-            <button onclick="toggleModal(false)" style="background:var(--accent); border:none; padding:8px 20px; border-radius:4px; font-weight:bold; cursor:pointer; color:#000;">CLOSE</button>
+            <h2 style="margin:0; font-size:1.1rem; color:var(--accent);">FULL PROJECT LIST</h2>
+            <button onclick="toggleModal(false)" style="background:var(--accent); border:none; padding:8px 20px; border-radius:4px; font-weight:bold; cursor:pointer;">CLOSE</button>
         </div>
     </div>
     <div class="container" id="accordion-root" style="padding: 60px 0 300px;"></div>
@@ -162,18 +149,56 @@
     const threshold = 90;
     const wrapper = document.getElementById('page-wrapper');
     const spinner = document.getElementById('refresh-spinner');
+    const pullEl = document.getElementById('pull-to-refresh');
 
-    // 1. 导航与滚动
-    function scrollToSection(id, el) {
-        const target = document.getElementById(id);
-        if (target) {
-            window.scrollTo({ top: target.offsetTop - 80, behavior: 'smooth' });
-            document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
-            el.classList.add('active');
+    // --- 1. 刷新机制核心 ---
+
+    // 监听浏览器刷新按钮
+    window.addEventListener('beforeunload', () => {
+        sessionStorage.setItem('isRefreshing', 'true');
+    });
+
+    // 页面加载后的自动检测
+    window.addEventListener('load', () => {
+        if (sessionStorage.getItem('isRefreshing')) {
+            sessionStorage.removeItem('isRefreshing');
+            // 瞬间强制回顶，不使用平滑滚动以免动画脱节
+            window.scrollTo({top: 0, left: 0, behavior: 'auto'});
+            // 立即触发下拉
+            setTimeout(triggerRefreshAnimation, 50); 
+        } else {
+            loadData(); // 正常加载
         }
+    });
+
+    function manualTriggerRefresh() {
+        window.scrollTo({top: 0, behavior: 'smooth'});
+        setTimeout(triggerRefreshAnimation, 400);
     }
 
-    // 2. 下拉刷新交互
+    async function triggerRefreshAnimation() {
+        // 展示下拉状态
+        wrapper.style.transform = `translateY(80px)`;
+        pullEl.style.top = '20px';
+        spinner.classList.add('spinning');
+        
+        await loadData();
+        
+        // 模拟加载感，稍作停顿
+        setTimeout(() => {
+            wrapper.style.transform = '';
+            pullEl.style.top = '-70px';
+            setTimeout(() => spinner.classList.remove('spinning'), 400);
+            
+            // 渐变显示内容
+            const content = document.getElementById('home-content');
+            content.style.opacity = '0';
+            setTimeout(() => content.style.opacity = '1', 50);
+        }, 800);
+    }
+
+    // --- 2. 手势交互 ---
+
     window.addEventListener('touchstart', (e) => {
         if (window.scrollY === 0) startY = e.touches[0].pageY;
     }, {passive: true});
@@ -184,54 +209,21 @@
         if (pullDist > 0) {
             wrapper.style.transform = `translateY(${pullDist}px)`;
             spinner.style.transform = `rotate(${pullDist * 4}deg)`;
-            document.getElementById('pull-to-refresh').style.top = `${Math.min(pullDist - 60, 20)}px`;
+            pullEl.style.top = `${Math.min(pullDist - 70, 10)}px`;
         }
     }, {passive: false});
 
     window.addEventListener('touchend', () => {
-        if (pullDist > threshold) triggerRefresh();
-        else resetPull();
+        if (pullDist > threshold) triggerRefreshAnimation();
+        else {
+            wrapper.style.transform = '';
+            pullEl.style.top = '-70px';
+        }
+        pullDist = 0;
     });
 
-    function manualRefresh() {
-        window.scrollTo({top:0, behavior:'smooth'});
-        setTimeout(triggerRefresh, 300);
-    }
+    // --- 3. 数据渲染与弹窗 ---
 
-    async function triggerRefresh() {
-        wrapper.style.transform = `translateY(70px)`;
-        spinner.classList.add('spinning');
-        await loadData();
-        setTimeout(resetPull, 1000);
-    }
-
-    function resetPull() {
-        pullDist = 0;
-        wrapper.style.transform = '';
-        document.getElementById('pull-to-refresh').style.top = '-60px';
-        spinner.classList.remove('spinning');
-    }
-
-    // 3. 弹窗逻辑
-    function toggleModal(show, targetId = null) {
-        const m = document.getElementById('portfolio-modal');
-        if (show) {
-            m.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-            setTimeout(() => {
-                m.classList.add('active');
-                if (targetId) jumpToItem(targetId);
-            }, 50);
-        } else {
-            m.classList.remove('active');
-            setTimeout(() => {
-                m.style.display = 'none';
-                document.body.style.overflow = '';
-            }, 600);
-        }
-    }
-
-    // 4. 数据核心
     async function loadData() {
         try {
             const res = await fetch('data.json?t=' + Date.now());
@@ -239,11 +231,10 @@
             document.getElementById('about-text').innerText = siteData.about;
             document.getElementById('email-val').innerText = siteData.email;
             document.getElementById('phone-val').innerText = siteData.phone;
-            
             renderHome();
             renderAccordion();
             document.getElementById('home-content').style.opacity = '1';
-        } catch(e) { console.error("Load fail", e); }
+        } catch(e) { console.error("Load failed", e); }
     }
 
     function renderHome() {
@@ -251,7 +242,15 @@
         grid.innerHTML = siteData.categories.flatMap((cat, cIdx) => 
             cat.items.map((item, iIdx) => {
                 item.unique_id = `item-${cIdx}-${iIdx}`;
-                return item.featured ? renderItem(item, 'featured', item.unique_id) : '';
+                return item.featured ? `
+                    <div class="item" onclick="toggleModal(true, '${item.unique_id}')">
+                        <div class="item-inner">
+                            <div class="media">
+                                ${item.type === 'video' ? `<video src="${item.url}" loop muted playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>` : `<img src="${item.url}">`}
+                            </div>
+                            <div class="info">${item.title}</div>
+                        </div>
+                    </div>` : '';
             })
         ).join('');
     }
@@ -260,95 +259,89 @@
         document.getElementById('accordion-root').innerHTML = siteData.categories.map(cat => `
             <div class="accordion-item">
                 <div class="accordion-header" onclick="toggleAccordion(this)">
-                    <h3 style="margin:0; letter-spacing:1px;">${cat.name}</h3>
-                    <span class="arrow">▼</span>
+                    <h3 style="margin:0;">${cat.name}</h3><span class="arrow">▼</span>
                 </div>
                 <div class="accordion-content">
-                    <div class="grid" style="padding: 40px 0 80px;">${cat.items.map(i => renderItem(i, 'modal', i.unique_id)).join('')}</div>
+                    <div class="grid" style="padding: 40px 0;">
+                        ${cat.items.map(i => `
+                            <div class="item" data-id="${i.unique_id}" onclick="handleModalItemClick(event, this)">
+                                <div class="item-inner">
+                                    <div class="media">
+                                        ${i.type === 'video' ? `<video src="${i.url}" loop muted playsinline></video>` : `<img src="${i.url}">`}
+                                    </div>
+                                    <div class="info">${i.title}</div>
+                                </div>
+                            </div>`).join('')}
+                    </div>
                 </div>
             </div>`).join('');
     }
 
-    function renderItem(i, context, id) {
-        return `
-            <div class="item" data-id="${id}" onclick="handleItemClick(event, this, '${context}', '${id}')">
-                <div class="item-inner">
-                    <div class="media">
-                        ${i.type === 'video' ? `<video src="${i.url}" loop muted playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>` : `<img src="${i.url}">`}
-                    </div>
-                    <div class="info">${i.title || 'Untitled'}</div>
-                </div>
-            </div>`;
-    }
-
-    function handleItemClick(e, el, context, id) {
-        e.stopPropagation();
-        if (context === 'featured') toggleModal(true, id);
-        else {
-            const active = el.classList.contains('active');
-            clearActiveItems();
-            if (!active) {
-                el.classList.add('active');
-                const v = el.querySelector('video'); if(v) v.play();
-            }
-        }
-    }
-
-    function toggleAccordion(el, forceOpen = false) {
+    function toggleAccordion(el, force = false) {
         const content = el.nextElementSibling;
-        const arrow = el.querySelector('.arrow');
-        if (forceOpen || !content.classList.contains('show')) {
+        const isOpen = content.classList.contains('show');
+        if (force || !isOpen) {
             content.style.display = 'block';
-            setTimeout(() => {
-                content.classList.add('show');
-                if(arrow) arrow.style.transform = 'rotate(180deg)';
-            }, 10);
+            setTimeout(() => content.classList.add('show'), 10);
+            el.querySelector('.arrow').style.transform = 'rotate(180deg)';
         } else {
             content.classList.remove('show');
-            if(arrow) arrow.style.transform = 'rotate(0deg)';
+            el.querySelector('.arrow').style.transform = 'rotate(0deg)';
             setTimeout(() => content.style.display = 'none', 500);
         }
     }
 
-    function jumpToItem(id) {
-        setTimeout(() => {
-            const el = document.querySelector(`#portfolio-modal .item[data-id="${id}"]`);
-            if (el) {
-                const header = el.closest('.accordion-item').querySelector('.accordion-header');
-                toggleAccordion(header, true);
-                setTimeout(() => {
-                    el.classList.add('active');
-                    const v = el.querySelector('video'); if(v) v.play();
-                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 500);
-            }
-        }, 500);
-    }
-
-    function clearActiveItems(e) {
-        if (e && e.target.closest('.item')) return;
-        document.querySelectorAll('.item.active').forEach(el => {
-            el.classList.remove('active');
-            const v = el.querySelector('video'); if(v) v.pause();
+    function handleModalItemClick(e, el) {
+        e.stopPropagation();
+        const isActive = el.classList.contains('active');
+        document.querySelectorAll('.item.active').forEach(i => {
+            i.classList.remove('active');
+            const v = i.querySelector('video'); if(v) v.pause();
         });
+        if (!isActive) {
+            el.classList.add('active');
+            const v = el.querySelector('video'); if(v) v.play();
+        }
     }
 
-    // 5. 简历下载修复
-    document.getElementById('resume-dl-btn').onclick = async function() {
-        this.innerText = "正在准备...";
-        try {
-            const res = await fetch('resume.pdf');
-            if(!res.ok) throw new Error();
-            const blob = await res.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = 'JLWLIMOU_Resume.pdf';
-            a.click();
-            this.innerText = "✅ 下载成功";
-        } catch(e) { this.innerText = "❌ 文件不存在"; }
-        setTimeout(() => this.innerText = "下载简历 (PDF)", 3000);
-    };
+    function toggleModal(show, id = null) {
+        const m = document.getElementById('portfolio-modal');
+        if (show) {
+            m.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                m.classList.add('active');
+                if (id) {
+                    const target = document.querySelector(`[data-id="${id}"]`);
+                    if (target) {
+                        toggleAccordion(target.closest('.accordion-item').querySelector('.accordion-header'), true);
+                        setTimeout(() => {
+                            target.scrollIntoView({behavior:'smooth', block:'center'});
+                            handleModalItemClick({stopPropagation:()=>{}}, target);
+                        }, 500);
+                    }
+                }
+            }, 50);
+        } else {
+            m.classList.remove('active');
+            setTimeout(() => { m.style.display = 'none'; document.body.style.overflow = ''; }, 600);
+        }
+    }
 
-    loadData();
+    function scrollToSection(id, el) {
+        const target = document.getElementById(id);
+        window.scrollTo({ top: target.offsetTop - 80, behavior: 'smooth' });
+        document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    // 简历下载
+    document.getElementById('resume-dl-btn').onclick = function() {
+        const link = document.createElement('a');
+        link.href = 'resume.pdf';
+        link.download = 'JLWLIMOU_Resume.pdf';
+        link.click();
+    };
 </script>
 </body>
 </html>
