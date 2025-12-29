@@ -5,23 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>JLWLIMOU | 3D Animator Portfolio</title>
     <style>
-        * { 
-            -webkit-tap-highlight-color: transparent; 
-            box-sizing: border-box; 
-            user-select: none; 
-            -webkit-user-select: none;
-        }
-        
-        /* 强制显示滚动条轨道防止抖动 */
-        html { 
-            scroll-behavior: smooth; 
-            overflow-y: scroll; 
-        }
-        
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        html { scroll-behavior: smooth; overflow-y: scroll; }
         :root { --accent: #ffcc00; --bg: #0a0a0a; --card: #161616; }
         body { background: var(--bg); color: #e0e0e0; font-family: -apple-system, sans-serif; margin: 0; overflow-x: hidden; }
         
-        /* 刷新保护：初识状态全透明 */
         #main-content { opacity: 0; transition: opacity 0.8s ease; }
         .container { width: 92%; max-width: 1400px; margin: 0 auto; }
         
@@ -43,6 +31,7 @@
             overflow: hidden; 
             transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); 
             z-index: 10;
+            transform-origin: center center;
         }
         .media { width: 100%; height: 250px; background: #000; transition: height 0.5s ease; }
         .media img, .media video { width: 100%; height: 100%; display: block; object-fit: contain; background: #000; pointer-events: none; }
@@ -50,25 +39,24 @@
 
         @media (hover: hover) {
             .item:not(.active):hover .item-inner { 
-                transform: scale(1.03); 
-                z-index: 50; 
-                border-color: var(--accent); 
+                transform: scale(1.03); z-index: 50; border-color: var(--accent); 
                 box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
             }
         }
 
+        /* 优化后的放大动画：使用 scale 和 translate 组合，防止跳动 */
         #accordion-root .item.active { z-index: 1001; }
         #accordion-root .item.active .item-inner {
-            width: 104%; left: -2%; top: -120px;
+            transform: scale(1.04) translateY(-10%); /* 原地均匀放大并稍微上移 */
+            width: 100%; 
             box-shadow: 0 40px 100px rgba(0,0,0,0.9);
             border-color: var(--accent);
         }
-        #accordion-root .item.active .media { height: 500px; }
+        #accordion-root .item.active .media { height: 480px; }
 
         #portfolio-modal { 
             position: fixed; top: 100%; left: 0; width: 100%; height: 100%; 
-            background: var(--bg); z-index: 2000; 
-            overflow-y: auto; 
+            background: var(--bg); z-index: 2000; overflow-y: auto; 
             transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); 
             overscroll-behavior: contain;
         }
@@ -139,16 +127,7 @@
 </div>
 
 <script>
-    /**
-     * 第一优先级：禁用浏览器的滚动恢复行为
-     */
-    if ('scrollRestoration' in history) {
-        history.scrollRestoration = 'manual';
-    }
-
-    /**
-     * 第二优先级：在脚本开始运行时立即置顶（此时 DOM 可能未加载，作为预防）
-     */
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
     window.scrollTo(0, 0);
 
     let siteData = null;
@@ -157,8 +136,6 @@
         try {
             const res = await fetch('data.json?t=' + Date.now());
             siteData = await res.json();
-            
-            // 填充内容
             document.getElementById('about-text').innerText = siteData.about;
             document.getElementById('email-val').innerText = siteData.email;
             document.getElementById('phone-val').innerText = siteData.phone;
@@ -167,29 +144,22 @@
             let fHtml = '';
             siteData.categories.forEach(cat => {
                 cat.items.filter(i => i.featured).forEach(item => { 
-                    fHtml += renderItem(item, 'featured'); 
+                    fHtml += renderItem(item, 'featured', item.id); // 传入 ID
                 });
             });
             fGrid.innerHTML = fHtml || '<p>暂无精选作品</p>';
             renderAccordion();
 
-            /**
-             * 第三优先级：数据渲染完成后，在显示内容前强制重置坐标
-             */
             requestAnimationFrame(() => {
                 window.scrollTo(0, 0);
-                setTimeout(() => {
-                    document.getElementById('main-content').style.opacity = '1';
-                    window.scrollTo(0, 0); // 最终保险
-                }, 50);
+                setTimeout(() => { document.getElementById('main-content').style.opacity = '1'; }, 50);
             });
-
         } catch(e) { console.error("Data Error"); }
     }
 
-    function renderItem(i, context) {
+    function renderItem(i, context, id = '') {
         return `
-            <div class="item" onclick="handleItemClick(event, this, '${context}')">
+            <div class="item" data-id="${id}" onclick="handleItemClick(event, this, '${context}', '${id}')">
                 <div class="item-inner">
                     <div class="media">
                         ${i.type === 'video' 
@@ -202,10 +172,10 @@
         `;
     }
 
-    function handleItemClick(e, el, context) {
+    function handleItemClick(e, el, context, id) {
         e.stopPropagation();
         if (context === 'featured') {
-            toggleModal(true);
+            toggleModal(true, id); // 首页点击带 ID 进入弹窗
         } else {
             const isActive = el.classList.contains('active');
             clearActiveItems();
@@ -217,61 +187,75 @@
         }
     }
 
-    function clearActiveItems(e) {
+    function clearActiveItems() {
         document.querySelectorAll('.item.active').forEach(el => {
             el.classList.remove('active');
-            const video = el.querySelector('video');
-            if (video) video.pause();
+            const v = el.querySelector('video');
+            if (v) v.pause();
         });
     }
 
     function renderAccordion() {
         const root = document.getElementById('accordion-root');
-        root.innerHTML = siteData.categories.map(cat => `
-            <div class="accordion-item" style="border-bottom:1px solid #222;">
+        root.innerHTML = siteData.categories.map((cat, catIdx) => `
+            <div class="accordion-item" id="cat-${catIdx}" style="border-bottom:1px solid #222;">
                 <div class="accordion-header" style="padding:30px 0; cursor:pointer; display:flex; justify-content:space-between;" onclick="toggleAccordion(this)">
                     <h3 style="margin:0;">${cat.name}</h3>
                     <span class="arrow">▼</span>
                 </div>
                 <div class="accordion-content" style="display:none; padding-bottom:50px;">
-                    <div class="grid">${cat.items.map(i => renderItem(i, 'modal')).join('')}</div>
+                    <div class="grid">${cat.items.map(i => renderItem(i, 'modal', i.id)).join('')}</div>
                 </div>
             </div>
         `).join('');
     }
 
-    function toggleAccordion(el) {
+    function toggleAccordion(el, forceOpen = false) {
         const content = el.nextElementSibling;
-        const isOpen = content.style.display === 'block';
-        content.style.display = isOpen ? 'none' : 'block';
-        el.querySelector('.arrow').style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
-        clearActiveItems();
-    }
-
-    document.getElementById('resume-dl').addEventListener('click', async function() {
-        const btn = this; btn.innerText = "准备中...";
-        try {
-            const res = await fetch('resume.pdf');
-            const blob = await res.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = 'JLWLIMOU_简历.pdf';
-            a.click(); btn.innerText = "✅ 已下载";
-        } catch(e) { btn.innerText = "❌ 未找到"; }
-        setTimeout(() => btn.innerText = "下载简历 (PDF)", 3000);
-    });
-
-    function toggleModal(show) {
-        const m = document.getElementById('portfolio-modal');
-        m.classList.toggle('active', show);
-        if (show) {
-            m.scrollTop = 0;
+        const arrow = el.querySelector('.arrow');
+        if (forceOpen) {
+            content.style.display = 'block';
+            arrow.style.transform = 'rotate(180deg)';
         } else {
+            const isOpen = content.style.display === 'block';
+            content.style.display = isOpen ? 'none' : 'block';
+            arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
             clearActiveItems();
         }
     }
 
-    // 最后的安全网：页面完全加载后再次执行置顶
-    window.onload = () => window.scrollTo(0, 0);
+    function toggleModal(show, targetId = null) {
+        const m = document.getElementById('portfolio-modal');
+        m.classList.toggle('active', show);
+        
+        if (show) {
+            m.scrollTop = 0;
+            if (targetId) {
+                // 自动联动逻辑
+                setTimeout(() => {
+                    // 1. 找到弹窗中对应的作品元素
+                    const targetEl = m.querySelector(`.item[data-id="${targetId}"]`);
+                    if (targetEl) {
+                        // 2. 找到它所属的分类并展开
+                        const accordionHeader = targetEl.closest('.accordion-item').querySelector('.accordion-header');
+                        toggleAccordion(accordionHeader, true);
+                        
+                        // 3. 放大该作品
+                        targetEl.classList.add('active');
+                        const v = targetEl.querySelector('video');
+                        if (v) v.play();
+
+                        // 4. 滚动到该作品位置
+                        setTimeout(() => {
+                            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 300);
+                    }
+                }, 400); // 等待弹窗推入动画完成
+            }
+        } else {
+            clearActiveItems();
+        }
+    }
 
     loadData();
 </script>
