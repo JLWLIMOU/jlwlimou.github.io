@@ -5,28 +5,29 @@
     <title>JLWLIMOU - 后台</title>
     <style>
         body { background: #0a0a0a; color: #fff; font-family: -apple-system, sans-serif; padding: 20px; display: flex; justify-content: center; }
-        .box { width: 100%; max-width: 500px; background: #161616; padding: 35px; border-radius: 20px; border: 1px solid #222; }
+        .box { width: 100%; max-width: 500px; background: #161616; padding: 35px; border-radius: 20px; border: 1px solid #222; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
         #login-layer { text-align: center; }
         #editor-layer { display: none; }
         .group { margin-bottom: 20px; background: #222; padding: 15px; border-radius: 10px; }
         label { display: block; font-size: 0.75rem; color: #888; margin-bottom: 8px; text-transform: uppercase; }
         input, textarea { width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: #fff; border-radius: 6px; box-sizing: border-box; }
+        input:focus { border-color: #ffcc00; outline: none; }
         button { background: #ffcc00; color: #000; border: none; padding: 15px; width: 100%; cursor: pointer; font-weight: bold; border-radius: 6px; margin-top: 10px; transition: 0.3s; }
         button:hover { background: #fff; }
-        #msg { margin-top: 15px; font-size: 0.85rem; text-align: center; color: #ffcc00; line-height: 1.6; }
+        #msg { margin-top: 15px; font-size: 0.85rem; text-align: center; color: #ffcc00; line-height: 1.6; white-space: pre-wrap; }
     </style>
 </head>
 <body>
 
 <div class="box">
     <div id="login-layer">
-        <h2 style="color:#ffcc00">Identity Verify</h2>
-        <input type="password" id="pass-input" placeholder="输入访问代码">
-        <button onclick="checkLogin()">解密并进入</button>
+        <h2 style="color:#ffcc00; margin-top:0;">ADMIN LOGIN</h2>
+        <input type="password" id="pass-input" placeholder="输入访问密码" onkeyup="if(event.keyCode==13) checkLogin()">
+        <button onclick="checkLogin()">登录</button>
     </div>
 
     <div id="editor-layer">
-        <h2 style="color:#ffcc00">Control Panel</h2>
+        <h2 style="color:#ffcc00; margin-top:0;">Control Panel</h2>
         <div class="group"><label>📧 邮箱</label><input type="text" id="email" placeholder="保留原样请留空"></div>
         <div class="group"><label>📞 电话</label><input type="text" id="phone" placeholder="保留原样请留空"></div>
         <div class="group"><label>📝 简介</label><textarea id="about" rows="3" placeholder="保留原样请留空"></textarea></div>
@@ -41,18 +42,22 @@
 </div>
 
 <script>
+    /* --- 核心配置区 --- */
     const CONFIG = {
         OWNER: "JLWLIMOU",
         REPO: "jlwlimou.github.io",
         MY_PASS: "357436", 
-        OBSF_TOKEN: "Z2hwXzlIMFBEcFo" + "xT2hkQUM2dnQwSGJlYTFhcXlHaGJ2RTJFbU1pYQ==" 
+        OBSF_TOKEN: "Z2hwXzlIMFBEcFoxT2hkQUM2dnQwS" + "GJlYTFhcXlHaGJ2RTJFbU1pYQ==" 
     };
 
     function checkLogin() {
-        if (document.getElementById('pass-input').value === CONFIG.MY_PASS) {
+        const input = document.getElementById('pass-input').value;
+        if (input === CONFIG.MY_PASS) {
             document.getElementById('login-layer').style.display = 'none';
             document.getElementById('editor-layer').style.display = 'block';
-        } else { alert('Access Denied'); }
+        } else {
+            alert('密码错误');
+        }
     }
 
     const toBase64 = f => new Promise((res, rej) => {
@@ -60,12 +65,10 @@
         r.onload = () => res(r.result.split(',')[1]); r.onerror = e => rej(e);
     });
 
-    // 核心上传函数（增强版）
     async function uploadFile(token, path, content, isBase64 = true) {
         const url = `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${path}`;
         const headers = { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' };
         
-        // 1. 获取文件的 SHA (如果文件已存在)
         const getRes = await fetch(url, { headers });
         let sha = null;
         if (getRes.status === 200) {
@@ -73,22 +76,16 @@
             sha = data.sha;
         }
 
-        // 2. 准备提交
         const body = {
-            message: `Update ${path} via Admin`,
+            message: `Update ${path}`,
             content: isBase64 ? content : btoa(unescape(encodeURIComponent(content))),
             sha: sha
         };
 
-        const putRes = await fetch(url, {
-            method: 'PUT',
-            headers,
-            body: JSON.stringify(body)
-        });
-
+        const putRes = await fetch(url, { method: 'PUT', headers, body: JSON.stringify(body) });
         if (!putRes.ok) {
             const errData = await putRes.json();
-            throw new Error(`${path} 上传失败: ${errData.message}`);
+            throw new Error(`${path} 失败: ${errData.message}`);
         }
     }
 
@@ -96,10 +93,9 @@
         const token = atob(CONFIG.OBSF_TOKEN);
         const m = document.getElementById('msg');
         m.style.color = "#ffcc00";
-        m.innerText = '🚀 正在同步，请勿关闭窗口...';
+        m.innerText = '🚀 正在同步...';
         
         try {
-            // --- 1. 处理 index.html 文字修改 ---
             const e = document.getElementById('email').value;
             const p = document.getElementById('phone').value;
             const a = document.getElementById('about').value;
@@ -119,30 +115,27 @@
                 m.innerText += '\n✅ 文字更新成功';
             }
 
-            // --- 2. 处理简历文件 ---
             const rf = document.getElementById('resFile').files[0];
             if (rf) {
-                const b64 = await toBase64(rf);
-                await uploadFile(token, 'resume.pdf', b64, true);
+                await uploadFile(token, 'resume.pdf', await toBase64(rf), true);
                 m.innerText += '\n✅ 简历上传成功';
             }
 
-            // --- 3. 处理作品文件 ---
             const wf = document.getElementById('workFile').files[0];
             if (wf) {
                 const name = wf.type.includes('video') ? 'work1.mp4' : 'render1.jpg';
-                const b64 = await toBase64(wf);
-                await uploadFile(token, name, b64, true);
-                m.innerText += `\n✅ 作品(${name})上传成功`;
+                await uploadFile(token, name, await toBase64(wf), true);
+                m.innerText += `\n✅ 作品上传成功`;
             }
 
             m.style.color = "#00ff00";
-            m.innerText += '\n\n🎉 所有内容已同步！线上生效约需1分钟。';
+            m.innerText += '\n\n🎉 同步完成！请等待1分钟后刷新主页。';
         } catch(err) {
             m.style.color = "#ff4444";
-            m.innerText = `❌ 出错了：\n${err.message}\n(请检查Token权限是否包含 "repo" 权限)`;
+            m.innerText = `❌ 失败：\n${err.message}`;
         }
     }
 </script>
+
 </body>
 </html>
