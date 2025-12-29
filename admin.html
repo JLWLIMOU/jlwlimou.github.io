@@ -4,190 +4,240 @@
     <meta charset="UTF-8">
     <title>JLWLIMOU 后台管理系统</title>
     <style>
-        :root { --accent: #ffcc00; --bg: #0a0a0a; --card: #161616; }
-        body { background: var(--bg); color: #fff; font-family: sans-serif; padding: 20px; line-height: 1.6; }
-        .box { max-width: 900px; margin: 0 auto; background: var(--card); border-radius: 15px; border: 1px solid #222; overflow: hidden; }
+        :root { --accent: #ffcc00; --bg: #0a0a0a; --card: #161616; --border: #333; }
+        body { background: var(--bg); color: #fff; font-family: -apple-system, sans-serif; padding: 20px; margin: 0; }
+        .box { max-width: 900px; margin: 20px auto; background: var(--card); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         
-        /* 标签页样式 */
-        .tabs { display: flex; background: #222; border-bottom: 1px solid #333; }
-        .tab-btn { flex: 1; padding: 15px; border: none; background: none; color: #888; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        /* 导航标签页 */
+        .tabs { display: flex; background: #222; border-bottom: 1px solid var(--border); }
+        .tab-btn { flex: 1; padding: 18px; border: none; background: none; color: #777; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 0.9rem; }
         .tab-btn.active { color: var(--accent); background: var(--card); border-bottom: 3px solid var(--accent); }
         
-        .tab-content { display: none; padding: 30px; }
+        .tab-content { display: none; padding: 30px; min-height: 400px; }
         .tab-content.active { display: block; }
 
-        /* 内容样式 */
-        .group { background: #222; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        label { display: block; color: var(--accent); font-size: 0.8rem; margin-bottom: 10px; text-transform: uppercase; }
-        input, textarea { width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: #fff; border-radius: 6px; box-sizing: border-box; }
+        /* 通用组件 */
+        .group { background: #1a1a1a; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #252525; }
+        label { display: block; color: var(--accent); font-size: 0.75rem; margin-bottom: 10px; letter-spacing: 1px; }
+        input, textarea, select { width: 100%; padding: 12px; background: #000; border: 1px solid var(--border); color: #fff; border-radius: 6px; box-sizing: border-box; font-size: 0.95rem; }
+        input:focus { border-color: var(--accent); outline: none; }
+
+        /* 作品项样式 */
+        .cat-card { border: 1px solid #333; padding: 20px; border-radius: 10px; margin-bottom: 25px; background: #1a1a1a; }
+        .item-row { display: flex; align-items: center; gap: 12px; background: #0c0c0c; padding: 10px; margin-top: 10px; border-radius: 6px; border: 1px solid #222; }
+        .item-row input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
         
-        /* 作品列表样式 */
-        .cat-card { border: 1px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
-        .item-row { display: flex; align-items: center; gap: 10px; background: #111; padding: 8px; margin-top: 8px; border-radius: 4px; }
-        .del-btn { background: #ff4444; color: #fff; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.7rem; }
-        
-        .save-bar { position: sticky; bottom: 0; background: var(--accent); color: #000; padding: 20px; text-align: center; font-weight: bold; cursor: pointer; }
+        /* 按钮类 */
+        .btn-main { background: var(--accent); color: #000; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1rem; }
+        .btn-add-cat { background: #333; color: #fff; border: 1px solid #444; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-bottom: 15px; }
+        .btn-del { background: #cc3333; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+        .btn-upload-trigger { margin-top: 15px; width: 100%; border: 1px dashed #444; background: rgba(255,255,255,0.02); color: #888; cursor: pointer; padding: 10px; border-radius: 6px; }
+        .btn-upload-trigger:hover { border-color: var(--accent); color: var(--accent); }
+
+        .save-bar-wrap { position: sticky; bottom: 0; padding: 20px; background: var(--card); border-top: 1px solid var(--border); }
+        #status-msg { text-align: center; padding: 10px; font-size: 0.9rem; min-height: 20px; }
     </style>
 </head>
 <body>
 
 <div class="box">
     <div class="tabs">
-        <button class="tab-btn active" onclick="openTab(event, 'tab-works')">作品集管理</button>
-        <button class="tab-btn" onclick="openTab(event, 'tab-info')">个人基本信息</button>
-        <button class="tab-btn" onclick="openTab(event, 'tab-about')">简介编辑</button>
+        <button class="tab-btn active" onclick="switchTab(event, 'tab-works')">作品集管理</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-info')">基本信息</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-about')">简介编辑</button>
     </div>
 
     <div id="tab-works" class="tab-content active">
-        <button onclick="addCategory()" style="margin-bottom:20px; padding:10px; border-radius:5px; background:#444; color:#fff; border:none; cursor:pointer;">+ 新增分类</button>
-        <div id="categories-root"></div>
+        <button class="btn-add-cat" onclick="addCategory()">+ 新增分类板块</button>
+        <div id="works-root"></div>
     </div>
 
     <div id="tab-info" class="tab-content">
         <div class="group">
-            <label>联系邮箱 (QQ Email)</label>
-            <input type="text" id="field-email" onchange="localData.email=this.value">
+            <label>联系邮箱 (Email)</label>
+            <input type="text" id="inp-email" onchange="localData.email=this.value" placeholder="例如: jlwlimou@qq.com">
         </div>
         <div class="group">
             <label>联系电话 (Phone)</label>
-            <input type="text" id="field-phone" onchange="localData.phone=this.value">
+            <input type="text" id="inp-phone" onchange="localData.phone=this.value" placeholder="例如: +86 138...">
         </div>
     </div>
 
     <div id="tab-about" class="tab-content">
         <div class="group">
-            <label>个人简介文字</label>
-            <textarea id="field-about" rows="6" onchange="localData.about=this.value"></textarea>
+            <label>个人简介 (About Text)</label>
+            <textarea id="inp-about" rows="8" onchange="localData.about=this.value" placeholder="写一段介绍自己的话..."></textarea>
         </div>
     </div>
 
-    <div class="save-bar" onclick="saveAll()">保存并同步所有修改 (至 data.json)</div>
+    <div class="save-bar-wrap">
+        <div id="status-msg"></div>
+        <button class="btn-main" onclick="saveToGitHub()">保存并同步所有修改</button>
+    </div>
 </div>
-<div id="status" style="text-align:center; margin-top:15px; color:var(--accent);"></div>
 
 <script>
-    let localData = null;
+    // --- 配置区 ---
     const CONFIG = {
-        OWNER: "JLWLIMOU", REPO: "jlwlimou.github.io",
-        TOKEN: "你的前段" + "你的后段" 
+        OWNER: "JLWLIMOU",
+        REPO: "jlwlimou.github.io",
+        // 请在此处填入您拆分的 Token
+        T1: "Z2hwXzlIMFBEcFoxT2hkQUM2dnQwSGJlYT", 
+        T2: "FhcXlHaGJ2RTJFbU1pYQ=="
     };
 
-    // 标签页切换逻辑
-    function openTab(evt, tabName) {
-        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(tb => tb.classList.remove('active'));
-        document.getElementById(tabName).classList.add('active');
-        evt.currentTarget.classList.add('active');
-    }
+    let localData = null;
 
+    // 初始化：获取 JSON 数据
     async function init() {
-        const res = await fetch('data.json?t=' + Date.now());
-        localData = await res.json();
-        // 填入基础信息
-        document.getElementById('field-email').value = localData.email;
-        document.getElementById('field-phone').value = localData.phone;
-        document.getElementById('field-about').value = localData.about;
-        renderWorks();
+        showMsg("正在读取数据...");
+        try {
+            const res = await fetch('data.json?t=' + Date.now());
+            localData = await res.json();
+            
+            // 填充基础字段
+            document.getElementById('inp-email').value = localData.email || "";
+            document.getElementById('inp-phone').value = localData.phone || "";
+            document.getElementById('inp-about').value = localData.about || "";
+            
+            renderWorks();
+            showMsg("数据读取成功", "#ffcc00");
+        } catch (e) {
+            showMsg("读取失败，请检查 data.json 是否存在", "red");
+        }
     }
 
+    // 渲染作品列表
     function renderWorks() {
-        const root = document.getElementById('categories-root');
+        const root = document.getElementById('works-root');
         root.innerHTML = '';
+
         localData.categories.forEach((cat, cIdx) => {
             const card = document.createElement('div');
             card.className = 'cat-card';
             card.innerHTML = `
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <input type="text" value="${cat.name}" onchange="localData.categories[${cIdx}].name=this.value" style="width:70%">
-                    <button class="del-btn" onclick="removeCategory(${cIdx})">删除分类</button>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <input type="text" value="${cat.name}" onchange="localData.categories[${cIdx}].name=this.value" style="font-weight:bold; color:var(--accent); width:60%">
+                    <button class="btn-del" onclick="deleteCategory(${cIdx})">删除分类</button>
                 </div>
-                <div id="items-${cIdx}">
+                <div class="items-list">
                     ${cat.items.map((item, iIdx) => `
                         <div class="item-row">
-                            <span style="font-size:12px; color:#666; flex:1; overflow:hidden;">${item.url}</span>
-                            <input type="text" value="${item.title}" onchange="localData.categories[${cIdx}].items[${iIdx}].title=this.value" style="width:40%; padding:4px;">
-                            <button class="del-btn" style="background:#555" onclick="removeItem(${cIdx}, ${iIdx})">✕</button>
+                            <input type="checkbox" ${item.featured ? 'checked' : ''} onchange="localData.categories[${cIdx}].items[${iIdx}].featured=this.checked" title="设为首页精选">
+                            <span style="font-size:0.7rem; color:#555; width:20%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.url}</span>
+                            <input type="text" value="${item.title}" onchange="localData.categories[${cIdx}].items[${iIdx}].title=this.value" style="flex:1; padding:5px;">
+                            <button class="btn-del" style="background:#444" onclick="deleteItem(${cIdx}, ${iIdx})">✕</button>
                         </div>
                     `).join('')}
                 </div>
-                <button onclick="triggerUpload(${cIdx})" style="margin-top:10px; width:100%; border:1px dashed #444; background:none; color:#888; cursor:pointer; padding:5px;">+ 添加作品文件</button>
-                <input type="file" id="file-${cIdx}" style="display:none" onchange="handleFile(${cIdx}, this)">
+                <button class="btn-upload-trigger" onclick="document.getElementById('file-${cIdx}').click()">+ 添加作品文件 (图片/视频)</button>
+                <input type="file" id="file-${cIdx}" style="display:none" onchange="handleFileUpload(${cIdx}, this)">
             `;
             root.appendChild(card);
         });
     }
 
-    // 功能函数：添加分类
+    // 交互功能
+    function switchTab(evt, name) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(name).classList.add('active');
+        evt.currentTarget.classList.add('active');
+    }
+
     function addCategory() {
-        localData.categories.push({ id: Date.now().toString(), name: "新分类", items: [] });
+        localData.categories.push({ id: "cat_" + Date.now(), name: "新建分类", items: [] });
         renderWorks();
     }
 
-    // 功能函数：删除分类
-    function removeCategory(idx) {
-        if(confirm("确定要删除整个分类吗？")) {
+    function deleteCategory(idx) {
+        if(confirm("确定要删除这个分类及其所有作品吗？")) {
             localData.categories.splice(idx, 1);
             renderWorks();
         }
     }
 
-    // 功能函数：删除单个作品
-    function removeItem(cIdx, iIdx) {
+    function deleteItem(cIdx, iIdx) {
         localData.categories[cIdx].items.splice(iIdx, 1);
         renderWorks();
     }
 
-    function triggerUpload(idx) { document.getElementById(`file-${idx}`).click(); }
-
-    async function handleFile(catIdx, input) {
+    // 文件上传逻辑
+    async function handleFileUpload(cIdx, input) {
         const file = input.files[0];
         if(!file) return;
-        document.getElementById('status').innerText = `正在上传 ${file.name}...`;
-        
+
+        showMsg(`正在上传文件: ${file.name}...`);
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = async () => {
-            const content = reader.result.split(',')[1];
-            const token = atob(CONFIG.TOKEN);
-            
-            await fetch(`https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${file.name}`, {
-                method: 'PUT',
-                headers: { 'Authorization': `token ${token}` },
-                body: JSON.stringify({ message: `Upload ${file.name}`, content: content })
-            });
+            try {
+                const content = reader.result.split(',')[1];
+                const token = atob(CONFIG.T1 + CONFIG.T2);
+                
+                const url = `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${file.name}`;
+                
+                // 检查文件是否已存在以获取 SHA
+                const check = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
+                const sha = check.status === 200 ? (await check.json()).sha : null;
 
-            localData.categories[catIdx].items.push({
-                type: file.type.includes('video') ? 'video' : 'image',
-                url: file.name,
-                title: file.name.split('.')[0]
-            });
-            renderWorks();
-            document.getElementById('status').innerText = "文件上传成功！记得最后保存结构。";
+                const res = await fetch(url, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `token ${token}` },
+                    body: JSON.stringify({
+                        message: `Upload ${file.name}`,
+                        content: content,
+                        sha: sha
+                    })
+                });
+
+                if(res.ok) {
+                    localData.categories[cIdx].items.push({
+                        type: file.type.includes('video') ? 'video' : 'image',
+                        url: file.name,
+                        title: file.name.split('.')[0],
+                        featured: false
+                    });
+                    renderWorks();
+                    showMsg("文件上传成功！请记得保存结构。", "lime");
+                }
+            } catch (e) {
+                showMsg("上传失败，请检查 Token", "red");
+            }
         };
     }
 
-    async function saveAll() {
-        const status = document.getElementById('status');
-        status.innerText = "🚀 正在同步至 GitHub...";
-        const token = atob(CONFIG.TOKEN);
-        
-        const res = await fetch(`https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/data.json`, {
-            headers: { 'Authorization': `token ${token}` }
-        });
-        const oldFile = await res.json();
+    // 保存所有数据到 data.json
+    async function saveToGitHub() {
+        showMsg("🚀 正在同步至 GitHub...");
+        try {
+            const token = atob(CONFIG.T1 + CONFIG.T2);
+            const url = `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/data.json`;
+            
+            const getRes = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
+            const fileData = await getRes.json();
 
-        const putRes = await fetch(`https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/data.json`, {
-            method: 'PUT',
-            headers: { 'Authorization': `token ${token}` },
-            body: JSON.stringify({
-                message: "Update site structure and info",
-                content: btoa(unescape(encodeURIComponent(JSON.stringify(localData, null, 2)))),
-                sha: oldFile.sha
-            })
-        });
+            const putRes = await fetch(url, {
+                method: 'PUT',
+                headers: { 'Authorization': `token ${token}` },
+                body: JSON.stringify({
+                    message: "Update site data via admin",
+                    content: btoa(unescape(encodeURIComponent(JSON.stringify(localData, null, 2)))),
+                    sha: fileData.sha
+                })
+            });
 
-        if(putRes.ok) status.innerText = "🎉 所有修改已同步生效！";
-        else status.innerText = "❌ 保存失败，请检查 Token。";
+            if(putRes.ok) showMsg("🎉 同步成功！页面已实时更新。", "lime");
+            else showMsg("保存失败，请检查配置", "red");
+        } catch (e) {
+            showMsg("保存出错: " + e.message, "red");
+        }
+    }
+
+    function showMsg(txt, color = "#888") {
+        const m = document.getElementById('status-msg');
+        m.innerText = txt;
+        m.style.color = color;
     }
 
     init();
