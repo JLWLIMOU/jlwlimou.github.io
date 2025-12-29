@@ -23,7 +23,18 @@
 
         html { scrollbar-width: none; background: var(--bg); scroll-behavior: smooth; }
         html::-webkit-scrollbar { display: none; }
-        body { background: var(--bg); color: #e0e0e0; font-family: system-ui, sans-serif; margin: 0; overflow-x: hidden; }
+        
+        /* 解决问题2：全局禁用双击选中文本变蓝 */
+        body { 
+            background: var(--bg); 
+            color: #e0e0e0; 
+            font-family: system-ui, sans-serif; 
+            margin: 0; 
+            overflow-x: hidden; 
+            user-select: none; 
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent; /* 移除移动端点击高亮 */
+        }
         body.modal-open { overflow: hidden !important; }
 
         nav { width: 100%; position: sticky; top: 0; background: rgba(10,10,10,0.85); backdrop-filter: blur(15px); border-bottom: 1px solid #222; z-index: 9000; }
@@ -51,7 +62,6 @@
             display: flex; align-items: center; justify-content: center;
         }
         
-        /* 激活时的覆盖扩张效果 */
         .item.active .item-inner { 
             inset: -10% -15%; 
             transform: scale(1.1);
@@ -61,17 +71,18 @@
         }
 
         /* --- 背景虚化逻辑 --- */
-        /* 当 grid 内部有 active 元素时，让非 active 的元素变暗模糊 */
         .grid:has(.active) .item:not(.active) {
             opacity: 0.3;
             filter: grayscale(0.8) blur(4px);
             transform: scale(0.95);
         }
 
-        .media { width: 100%; height: 100%; pointer-events: none; background: #000; display: flex; align-items: center; justify-content: center;}
+        .media { width: 100%; height: 100%; pointer-events: none; background: transparent; display: flex; align-items: center; justify-content: center;}
+        
+        /* 解决问题1：使用 contain 确保图片完整显示，不裁剪 */
         .media video, .media img { 
             width: 100%; height: 100%; 
-            object-fit: cover; 
+            object-fit: contain; 
             display: block; 
             transition: 0.5s; 
         }
@@ -86,6 +97,14 @@
         .item.active .info { opacity: 1; transform: translateY(0); }
 
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.6s var(--ease-out); }
+        .acc-header { 
+            padding:40px 0; 
+            cursor:pointer; 
+            display:flex; 
+            justify-content:space-between; 
+            align-items:center;
+            -webkit-user-select: none; /* 再次确保分类头部不被选中 */
+        }
         .acc-header span { transition: transform 0.4s; display: inline-block; }
         .accordion-item.open .acc-header span { transform: rotate(45deg); color: var(--accent); }
 
@@ -187,7 +206,7 @@
     function renderAccordion() {
         document.getElementById('accordion-root').innerHTML = siteData.categories.map((cat, idx) => `
             <div class="accordion-item" id="cat-wrapper-${idx}" style="border-bottom: 1px solid #222;">
-                <div class="acc-header" style="padding:40px 0; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleAccordion(this)">
+                <div class="acc-header" onclick="toggleAccordion(this)">
                     <h3 style="margin:0; font-size:1.5rem;">${cat.name}</h3>
                     <span style="font-size:2rem;">+</span>
                 </div>
@@ -222,22 +241,17 @@
     function handleItemClick(e, el) {
         if(e) e.stopPropagation();
         const isActive = el.classList.contains('active');
-        
-        // 如果点击的是已经激活的，则取消激活（点一下放大，再点一下缩小）
         if(isActive) {
             el.classList.remove('active');
             const v = el.querySelector('video'); 
             if(v) { v.pause(); v.currentTime = 0; }
             return;
         }
-
-        // 激活当前
         document.querySelectorAll('.item').forEach(i => {
             i.classList.remove('active');
             const v = i.querySelector('video'); 
             if(v) { v.pause(); v.currentTime = 0; }
         });
-        
         el.classList.add('active');
         const v = el.querySelector('video'); 
         if(v) { v.play().catch(() => {}); }
