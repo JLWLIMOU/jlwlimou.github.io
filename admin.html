@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>JLWLIMOU 后台管理系统</title>
+    <title>JLWLIMOU 后台管理 | Pro 版</title>
     <style>
         :root { --accent: #ffcc00; --bg: #0a0a0a; --card: #161616; }
         body { background: var(--bg); color: #fff; font-family: sans-serif; padding: 20px; }
@@ -12,16 +12,31 @@
         .tab-btn.active { color: var(--accent); background: var(--card); border-bottom: 2px solid var(--accent); }
         .tab-content { display: none; padding: 30px; }
         .tab-content.active { display: block; }
+        
         .group { background: #1a1a1a; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #252525; }
         label { display: block; color: var(--accent); font-size: 0.75rem; margin-bottom: 10px; }
         input, textarea { width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: #fff; border-radius: 6px; box-sizing: border-box; }
-        .cat-card { border: 1px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        
+        .cat-card { border: 1px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 15px; position: relative; }
         .item-row { display: flex; align-items: center; gap: 10px; background: #0c0c0c; padding: 10px; margin-top: 10px; border-radius: 4px; border: 1px solid #222; }
-        .btn-main { background: var(--accent); color: #000; border: none; padding: 18px; width: 100%; cursor: pointer; font-weight: bold; border-radius: 8px; font-size: 1rem; }
-        .status { text-align: center; margin-top: 10px; color: var(--accent); font-size: 0.9rem; }
+        
+        /* 状态指示器 */
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .btn-main { background: var(--accent); color: #000; border: none; padding: 18px; width: 100%; cursor: pointer; font-weight: bold; border-radius: 8px; font-size: 1rem; transition: 0.3s; }
+        .btn-main:disabled { background: #444; cursor: not-allowed; }
+        .upload-area { margin-top: 10px; width: 100%; border: 1px dashed #444; background: none; color: #888; padding: 12px; cursor: pointer; transition: 0.3s; border-radius: 6px; }
+        .upload-area:hover { border-color: var(--accent); color: var(--accent); background: rgba(255,204,0,0.05); }
     </style>
 </head>
 <body>
+
+<div id="loader" class="loading-overlay">
+    <div class="spinner"></div>
+    <div id="loader-text">正在处理中...</div>
+</div>
 
 <div class="box">
     <div class="tabs">
@@ -45,26 +60,33 @@
     </div>
 
     <div style="padding: 20px; border-top: 1px solid #222;">
-        <div id="status" class="status"></div>
-        <button class="btn-main" onclick="save()">保存并同步至 GitHub</button>
+        <div id="status" style="text-align: center; margin-bottom: 10px; color: var(--accent); font-size: 0.85rem; min-height: 1.2em;"></div>
+        <button id="save-btn" class="btn-main" onclick="save()">保存并同步至 GitHub</button>
     </div>
 </div>
 
 <script>
     const CONFIG = {
         OWNER: "JLWLIMOU", REPO: "jlwlimou.github.io",
-        T1: "Z2hwXzlIMFBEcFoxT2hkQUM2dnQwSGJlYT", T2: "FhcXlHaGJ2RTJFbU1pYQ==" // <--- 填入你的 Token
+        T1: "Z2hwXzlIMFBEcFoxT2hkQUM2dnQwSGJlYT", T2: "FhcXlHaGJ2RTJFbU1pYQ==" // <-- 填入 Token
     };
 
     let localData = null;
 
     async function init() {
-        const res = await fetch('data.json?t=' + Date.now());
-        localData = await res.json();
-        document.getElementById('inp-email').value = localData.email;
-        document.getElementById('inp-phone').value = localData.phone;
-        document.getElementById('inp-about').value = localData.about;
-        render();
+        toggleLoader(true, "正在获取最新数据...");
+        try {
+            const res = await fetch('data.json?t=' + Date.now());
+            localData = await res.json();
+            document.getElementById('inp-email').value = localData.email || "";
+            document.getElementById('inp-phone').value = localData.phone || "";
+            document.getElementById('inp-about').value = localData.about || "";
+            render();
+            toggleLoader(false);
+        } catch(e) { 
+            toggleLoader(false);
+            msg("数据加载失败，请检查 data.json");
+        }
     }
 
     function render() {
@@ -86,62 +108,98 @@
                         <button onclick="localData.categories[${cIdx}].items.splice(${iIdx},1);render()" style="background:#444; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">✕</button>
                     </div>
                 `).join('')}
-                <button onclick="document.getElementById('file-${cIdx}').click()" style="margin-top:10px; width:100%; border:1px dashed #444; background:none; color:#888; padding:8px; cursor:pointer;">+ 上传作品</button>
-                <input type="file" id="file-${cIdx}" style="display:none" onchange="upload(${cIdx}, this)">
+                <button class="upload-area" onclick="document.getElementById('file-${cIdx}').click()">+ 上传文件到该分类</button>
+                <input type="file" id="file-${cIdx}" style="display:none" onchange="handleUpload(${cIdx}, this)">
             `;
             root.appendChild(card);
         });
     }
 
-    function switchTab(e, n) {
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(n).classList.add('active'); e.currentTarget.classList.add('active');
-    }
+    async function handleUpload(cIdx, input) {
+        const file = input.files[0];
+        if(!file) return;
 
-    function addCat() { localData.categories.push({name:"新分类", items:[]}); render(); }
+        // 大文件提醒
+        if(file.size > 20 * 1024 * 1024) {
+            alert("文件超过 20MB，GitHub 传输可能会非常慢，建议先压缩！");
+        }
 
-    async function upload(cIdx, input) {
-        const f = input.files[0]; if(!f) return;
-        msg(`正在上传 ${f.name}...`);
-        const r = new FileReader(); r.readAsDataURL(f);
-        r.onload = async () => {
+        toggleLoader(true, `正在读取本地文件: ${file.name}`);
+        
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async () => {
             const token = atob(CONFIG.T1 + CONFIG.T2);
-            const content = r.result.split(',')[1];
-            const url = `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${f.name}`;
-            const res = await fetch(url, {
-                method: 'PUT',
-                headers: { 'Authorization': `token ${token}` },
-                body: JSON.stringify({ message: `Upload ${f.name}`, content: content })
-            });
-            if(res.ok) {
-                localData.categories[cIdx].items.push({ type: f.type.includes('video')?'video':'image', url: f.name, title: f.name.split('.')[0], featured: false });
-                render(); msg("上传成功！记得保存结构。");
+            const content = reader.result.split(',')[1];
+            const url = `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${file.name}`;
+            
+            toggleLoader(true, `正在向 GitHub 传输 (请勿刷新)...`);
+            
+            try {
+                const res = await fetch(url, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `token ${token}` },
+                    body: JSON.stringify({ message: `Upload ${file.name}`, content: content })
+                });
+
+                if(res.ok) {
+                    localData.categories[cIdx].items.push({ 
+                        type: file.type.includes('video') ? 'video' : 'image', 
+                        url: file.name, 
+                        title: file.name.split('.')[0], 
+                        featured: false 
+                    });
+                    render();
+                    msg("✅ 上传成功！别忘了最后保存。");
+                } else {
+                    const err = await res.json();
+                    msg("❌ 上传失败: " + err.message);
+                }
+            } catch(e) {
+                msg("❌ 网络异常，请检查科学上网环境");
             }
+            toggleLoader(false);
+            input.value = ''; // 清空选择
         };
     }
 
     async function save() {
-        msg("🚀 正在同步...");
+        toggleLoader(true, "正在保存网站结构...");
         const token = atob(CONFIG.T1 + CONFIG.T2);
         const url = `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/data.json`;
-        const g = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
-        const d = await g.json();
-        const p = await fetch(url, {
-            method: 'PUT',
-            headers: { 'Authorization': `token ${token}` },
-            body: JSON.stringify({ message: "Update site data", content: btoa(unescape(encodeURIComponent(JSON.stringify(localData, null, 2)))), sha: d.sha })
-        });
-        if(p.ok) msg("🎉 同步成功！"); else msg("❌ 失败，请检查密钥");
+        
+        try {
+            const g = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
+            const d = await g.json();
+            const p = await fetch(url, {
+                method: 'PUT',
+                headers: { 'Authorization': `token ${token}` },
+                body: JSON.stringify({ 
+                    message: "Update site data", 
+                    content: btoa(unescape(encodeURIComponent(JSON.stringify(localData, null, 2)))), 
+                    sha: d.sha 
+                })
+            });
+            if(p.ok) msg("🎉 所有修改已同步成功！"); else msg("❌ 同步失败");
+        } catch(e) { msg("❌ 保存出错"); }
+        toggleLoader(false);
+    }
+
+    function toggleLoader(show, text = "") {
+        document.getElementById('loader').style.display = show ? 'flex' : 'none';
+        document.getElementById('loader-text').innerText = text;
+        document.getElementById('save-btn').disabled = show;
     }
 
     function msg(t) { document.getElementById('status').innerText = t; }
+    
     function switchTab(evt, tabName) {
         document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(tb => tb.classList.remove('active'));
         document.getElementById(tabName).classList.add('active');
         evt.currentTarget.classList.add('active');
     }
+
     init();
 </script>
 </body>
