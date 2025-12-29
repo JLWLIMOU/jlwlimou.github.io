@@ -2,74 +2,139 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>JLWLIMOU 后台管理</title>
+    <title>JLWLIMOU 后台管理系统</title>
     <style>
-        body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 20px; }
-        .box { max-width: 800px; margin: 0 auto; background: #161616; padding: 30px; border-radius: 15px; border: 1px solid #222; }
-        .cat-card { background: #222; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #333; }
-        .cat-header { display: flex; justify-content: space-between; margin-bottom: 15px; }
-        input[type="text"] { background: #000; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 4px; }
-        .item-row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; background: #111; padding: 8px; border-radius: 4px; font-size: 0.8rem; }
-        .btn-add { background: #ffcc00; color: #000; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
-        .btn-plus { background: #444; color: #fff; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
-        .save-bar { position: sticky; bottom: 20px; background: #ffcc00; color: #000; padding: 20px; text-align: center; font-weight: bold; border-radius: 10px; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        :root { --accent: #ffcc00; --bg: #0a0a0a; --card: #161616; }
+        body { background: var(--bg); color: #fff; font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .box { max-width: 900px; margin: 0 auto; background: var(--card); border-radius: 15px; border: 1px solid #222; overflow: hidden; }
+        
+        /* 标签页样式 */
+        .tabs { display: flex; background: #222; border-bottom: 1px solid #333; }
+        .tab-btn { flex: 1; padding: 15px; border: none; background: none; color: #888; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .tab-btn.active { color: var(--accent); background: var(--card); border-bottom: 3px solid var(--accent); }
+        
+        .tab-content { display: none; padding: 30px; }
+        .tab-content.active { display: block; }
+
+        /* 内容样式 */
+        .group { background: #222; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        label { display: block; color: var(--accent); font-size: 0.8rem; margin-bottom: 10px; text-transform: uppercase; }
+        input, textarea { width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: #fff; border-radius: 6px; box-sizing: border-box; }
+        
+        /* 作品列表样式 */
+        .cat-card { border: 1px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .item-row { display: flex; align-items: center; gap: 10px; background: #111; padding: 8px; margin-top: 8px; border-radius: 4px; }
+        .del-btn { background: #ff4444; color: #fff; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.7rem; }
+        
+        .save-bar { position: sticky; bottom: 0; background: var(--accent); color: #000; padding: 20px; text-align: center; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="box">
-    <h2>站点结构管理</h2>
-    <button class="btn-add" onclick="addCategory()">+ 添加新分类</button>
-    
-    <div id="editor-root"></div>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab(event, 'tab-works')">作品集管理</button>
+        <button class="tab-btn" onclick="openTab(event, 'tab-info')">个人基本信息</button>
+        <button class="tab-btn" onclick="openTab(event, 'tab-about')">简介编辑</button>
+    </div>
 
-    <div class="save-bar" onclick="saveAll()">保存并同步所有修改 (需要填入 Token)</div>
-    <div id="status" style="text-align:center; margin-top:10px; color:#ffcc00;"></div>
+    <div id="tab-works" class="tab-content active">
+        <button onclick="addCategory()" style="margin-bottom:20px; padding:10px; border-radius:5px; background:#444; color:#fff; border:none; cursor:pointer;">+ 新增分类</button>
+        <div id="categories-root"></div>
+    </div>
+
+    <div id="tab-info" class="tab-content">
+        <div class="group">
+            <label>联系邮箱 (QQ Email)</label>
+            <input type="text" id="field-email" onchange="localData.email=this.value">
+        </div>
+        <div class="group">
+            <label>联系电话 (Phone)</label>
+            <input type="text" id="field-phone" onchange="localData.phone=this.value">
+        </div>
+    </div>
+
+    <div id="tab-about" class="tab-content">
+        <div class="group">
+            <label>个人简介文字</label>
+            <textarea id="field-about" rows="6" onchange="localData.about=this.value"></textarea>
+        </div>
+    </div>
+
+    <div class="save-bar" onclick="saveAll()">保存并同步所有修改 (至 data.json)</div>
 </div>
+<div id="status" style="text-align:center; margin-top:15px; color:var(--accent);"></div>
 
 <script>
     let localData = null;
     const CONFIG = {
         OWNER: "JLWLIMOU", REPO: "jlwlimou.github.io",
-        TOKEN: "你的前段" + "你的后段" // 填入你之前的拆分Token
+        TOKEN: "你的前段" + "你的后段" 
     };
+
+    // 标签页切换逻辑
+    function openTab(evt, tabName) {
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(tb => tb.classList.remove('active'));
+        document.getElementById(tabName).classList.add('active');
+        evt.currentTarget.classList.add('active');
+    }
 
     async function init() {
         const res = await fetch('data.json?t=' + Date.now());
         localData = await res.json();
-        render();
+        // 填入基础信息
+        document.getElementById('field-email').value = localData.email;
+        document.getElementById('field-phone').value = localData.phone;
+        document.getElementById('field-about').value = localData.about;
+        renderWorks();
     }
 
-    function render() {
-        const root = document.getElementById('editor-root');
+    function renderWorks() {
+        const root = document.getElementById('categories-root');
         root.innerHTML = '';
         localData.categories.forEach((cat, cIdx) => {
-            const div = document.createElement('div');
-            div.className = 'cat-card';
-            div.innerHTML = `
-                <div class="cat-header">
-                    <input type="text" value="${cat.name}" onchange="localData.categories[${cIdx}].name=this.value" placeholder="分类名称">
-                    <button onclick="removeItem(${cIdx})" style="color:red; background:none; border:none; cursor:pointer;">删除分类</button>
+            const card = document.createElement('div');
+            card.className = 'cat-card';
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <input type="text" value="${cat.name}" onchange="localData.categories[${cIdx}].name=this.value" style="width:70%">
+                    <button class="del-btn" onclick="removeCategory(${cIdx})">删除分类</button>
                 </div>
                 <div id="items-${cIdx}">
                     ${cat.items.map((item, iIdx) => `
                         <div class="item-row">
-                            <span>${item.type === 'video' ? '🎬' : '🖼️'}</span>
-                            <input type="text" value="${item.title}" onchange="localData.categories[${cIdx}].items[${iIdx}].title=this.value" style="flex:1">
-                            <span style="color:#666">${item.url}</span>
+                            <span style="font-size:12px; color:#666; flex:1; overflow:hidden;">${item.url}</span>
+                            <input type="text" value="${item.title}" onchange="localData.categories[${cIdx}].items[${iIdx}].title=this.value" style="width:40%; padding:4px;">
+                            <button class="del-btn" style="background:#555" onclick="removeItem(${cIdx}, ${iIdx})">✕</button>
                         </div>
                     `).join('')}
                 </div>
-                <button class="btn-plus" onclick="triggerUpload(${cIdx})">+</button>
+                <button onclick="triggerUpload(${cIdx})" style="margin-top:10px; width:100%; border:1px dashed #444; background:none; color:#888; cursor:pointer; padding:5px;">+ 添加作品文件</button>
                 <input type="file" id="file-${cIdx}" style="display:none" onchange="handleFile(${cIdx}, this)">
             `;
-            root.appendChild(div);
+            root.appendChild(card);
         });
     }
 
+    // 功能函数：添加分类
     function addCategory() {
         localData.categories.push({ id: Date.now().toString(), name: "新分类", items: [] });
-        render();
+        renderWorks();
+    }
+
+    // 功能函数：删除分类
+    function removeCategory(idx) {
+        if(confirm("确定要删除整个分类吗？")) {
+            localData.categories.splice(idx, 1);
+            renderWorks();
+        }
+    }
+
+    // 功能函数：删除单个作品
+    function removeItem(cIdx, iIdx) {
+        localData.categories[cIdx].items.splice(iIdx, 1);
+        renderWorks();
     }
 
     function triggerUpload(idx) { document.getElementById(`file-${idx}`).click(); }
@@ -77,56 +142,52 @@
     async function handleFile(catIdx, input) {
         const file = input.files[0];
         if(!file) return;
-        const status = document.getElementById('status');
-        status.innerText = `正在上传 ${file.name}...`;
-
-        // 1. 上传物理文件
+        document.getElementById('status').innerText = `正在上传 ${file.name}...`;
+        
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = async () => {
             const content = reader.result.split(',')[1];
             const token = atob(CONFIG.TOKEN);
             
-            // 提交文件到 GitHub
             await fetch(`https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${file.name}`, {
                 method: 'PUT',
                 headers: { 'Authorization': `token ${token}` },
                 body: JSON.stringify({ message: `Upload ${file.name}`, content: content })
             });
 
-            // 2. 更新本地数据结构
             localData.categories[catIdx].items.push({
                 type: file.type.includes('video') ? 'video' : 'image',
                 url: file.name,
                 title: file.name.split('.')[0]
             });
-            render();
-            status.innerText = "文件上传成功，别忘了最后点击下方的保存！";
+            renderWorks();
+            document.getElementById('status').innerText = "文件上传成功！记得最后保存结构。";
         };
     }
 
     async function saveAll() {
         const status = document.getElementById('status');
-        status.innerText = "🚀 正在保存结构...";
+        status.innerText = "🚀 正在同步至 GitHub...";
         const token = atob(CONFIG.TOKEN);
         
-        // 获取旧 SHA
         const res = await fetch(`https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/data.json`, {
             headers: { 'Authorization': `token ${token}` }
         });
         const oldFile = await res.json();
 
-        // 提交新 data.json
-        await fetch(`https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/data.json`, {
+        const putRes = await fetch(`https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/data.json`, {
             method: 'PUT',
             headers: { 'Authorization': `token ${token}` },
             body: JSON.stringify({
-                message: "Update site structure",
+                message: "Update site structure and info",
                 content: btoa(unescape(encodeURIComponent(JSON.stringify(localData, null, 2)))),
                 sha: oldFile.sha
             })
         });
-        status.innerText = "🎉 全面同步完成！";
+
+        if(putRes.ok) status.innerText = "🎉 所有修改已同步生效！";
+        else status.innerText = "❌ 保存失败，请检查 Token。";
     }
 
     init();
