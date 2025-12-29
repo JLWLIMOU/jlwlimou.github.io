@@ -143,33 +143,67 @@
     async function handleUpload(cIdx, input) {
         const file = input.files[0];
         if(!file) return;
-        toggleLoader(true, `正在检查并上传: ${file.name}`);
+
+        const fileExt = file.name.split('.').pop();
+        const fileNameOnly = file.name.split('.').slice(0, -1).join('.');
+        
+        let finalFileName = file.name;
+        let counter = 1;
+
+        toggleLoader(true, `正在校验文件名: ${finalFileName}`);
+        
+        const token = atob(CONFIG.T1 + CONFIG.T2);
         const reader = new FileReader();
         reader.readAsDataURL(file);
+
         reader.onload = async () => {
-            const token = atob(CONFIG.T1 + CONFIG.T2);
             const content = reader.result.split(',')[1];
-            const url = `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${file.name}`;
+            let url = `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${finalFileName}`;
             
-            let sha = null;
+            // 循环检测文件名是否已存在
+            let exists = true;
+            while (exists) {
+                try {
+                    const checkRes = await fetch(url, {
+                        headers: { 'Authorization': `token ${token}` }
+                    });
+                    
+                    if (checkRes.ok) {
+                        // 如果重名，生成：文件名 (1).扩展名
+                        finalFileName = `${fileNameOnly} (${counter}).${fileExt}`;
+                        url = `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${finalFileName}`;
+                        toggleLoader(true, `发现重名，尝试: ${finalFileName}`);
+                        counter++;
+                    } else {
+                        exists = false; // 名字可用
+                    }
+                } catch (e) { exists = false; }
+            }
+
+            toggleLoader(true, `正在上传: ${finalFileName}...`);
+            
             try {
-                const check = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
-                if (check.ok) sha = (await check.json()).sha;
-            } catch (e) {}
+                const res = await fetch(url, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `token ${token}` },
+                    body: JSON.stringify({ message: `Upload: ${finalFileName}`, content: content })
+                });
 
-            const res = await fetch(url, {
-                method: 'PUT',
-                headers: { 'Authorization': `token ${token}` },
-                body: JSON.stringify({ message: `Upload ${file.name}`, content: content, sha: sha })
-            });
-
-            if(res.ok) {
-                if (!localData.categories[cIdx].items.some(i => i.url === file.name)) {
+                if(res.ok) {
                     localData.categories[cIdx].items.push({ 
                         type: file.type.includes('video') ? 'video' : 'image', 
-                        url: file.name, title: file.name.split('.')[0], featured: false 
+                        url: finalFileName, 
+                        title: fileNameOnly, // 前端显示的标题不带 (1)
+                        featured: false 
                     });
+                    render();
+                    msg(`✅ 上传成功：${finalFileName}`);
                 }
+            } catch(e) { msg("❌ 上传出错"); }
+            toggleLoader(false);
+            input.value = ''; 
+        };
+    }
                 render();
                 msg("✅ 上传成功！");
             } else { msg("❌ 上传失败"); }
