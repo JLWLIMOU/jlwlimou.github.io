@@ -12,19 +12,22 @@
         body { background: var(--bg); color: #e0e0e0; font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; line-height: 1.5; overflow-x: hidden; }
         body.modal-open { overflow: hidden; }
 
-        /* --- 核心：刷新加载器 (PC+移动端通用) --- */
+        /* --- 刷新加载器优化：解决顶部对齐和点击拦截 --- */
         #ptr-wrap { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 60px; 
-            display: none; align-items: center; justify-content: center; z-index: 10001; 
+            position: fixed; top: 0; left: 0; width: 100%; height: 80px; 
+            display: flex; align-items: center; justify-content: center; 
+            z-index: 10001; pointer-events: none; opacity: 0;
+            transition: opacity 0.3s;
         }
         .spinner {
-            width: 22px; height: 22px; border: 2.5px solid rgba(255,204,0,0.15);
-            border-top: 2.5px solid var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite;
+            width: 24px; height: 24px; border: 3px solid rgba(255,204,0,0.1);
+            border-top: 3px solid var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* 页面整体容器动画 */
-        #page-wrapper { transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1); will-change: transform; }
+        /* 页面入场动画 */
+        #page-wrapper { opacity: 0; transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2, 1, 0.3, 1); }
+        #page-wrapper.loaded { opacity: 1; transform: translateY(0); }
 
         /* --- 导航 --- */
         nav { width: 100%; position: sticky; top: 0; background: rgba(10,10,10,0.85); backdrop-filter: blur(15px); border-bottom: 1px solid #222; z-index: 9999; }
@@ -36,41 +39,43 @@
         .nav-links a.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
 
         /* 区域高亮 */
-        .highlight-target { transition: all 0.5s cubic-bezier(0.2, 1, 0.3, 1); border: 1px solid #222; position: relative; overflow: hidden; }
-        .highlight-target.active-border { border-color: var(--accent) !important; box-shadow: 0 0 30px rgba(255, 204, 0, 0.1); transform: translateY(-5px); z-index: 10; }
+        .highlight-target { transition: all 0.5s cubic-bezier(0.2, 1, 0.3, 1); border: 1px solid #222; position: relative; }
+        .highlight-target.active-border { border-color: var(--accent) !important; box-shadow: 0 0 40px rgba(255, 204, 0, 0.15); transform: scale(1.01); z-index: 5; }
 
         .container { width: 92%; max-width: 1400px; margin: 0 auto; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
         
-        /* 作品项交互 */
-        .item { position: relative; height: 300px; cursor: pointer; }
-        .item-inner { position: absolute; width: 100%; background: #111; border: 1px solid #222; border-radius: 12px; overflow: hidden; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        .item:hover .item-inner { transform: translateY(-8px); border-color: #555; }
-        .item.active .item-inner { transform: scale(1.04) translateY(-10px); border-color: var(--accent); box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+        /* 作品项交互：解决比例问题 */
+        .item { position: relative; min-height: 280px; cursor: pointer; }
+        .item-inner { width: 100%; background: #111; border: 1px solid #222; border-radius: 12px; overflow: hidden; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .item:hover .item-inner { border-color: #555; transform: translateY(-5px); }
+        .item.active .item-inner { border-color: var(--accent); box-shadow: 0 20px 50px rgba(0,0,0,0.8); transform: scale(1.02); }
 
-        .media { width: 100%; height: 230px; background: #000; overflow: hidden; }
-        .media video, .media img { width: 100%; height: 100%; object-fit: cover; }
-        .info { padding: 12px; font-size: 0.85rem; color: #888; text-align: center; font-weight: 500; }
+        .media { width: 100%; height: 220px; background: #000; overflow: hidden; transition: height 0.5s ease; }
+        .item.active .media { height: auto; min-height: 220px; } /* 展开后展示完整比例 */
+        .media video, .media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .item.active .media video, .item.active .media img { object-fit: contain; } /* 放大后不裁剪 */
+        .info { padding: 14px; font-size: 0.85rem; color: #888; text-align: center; }
 
         /* 弹窗系统 */
         #portfolio-modal { 
             visibility: hidden; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: var(--bg); z-index: 10000; transform: translateY(100%); 
-            transition: transform 0.6s cubic-bezier(0.32, 1, 0.23, 1), visibility 0.6s; overflow-y: auto; 
+            transition: transform 0.6s cubic-bezier(0.3, 1, 0.2, 1), visibility 0.6s; overflow-y: auto; 
         }
         #portfolio-modal.active { visibility: visible; transform: translateY(0); }
         
         .section-title { color: var(--accent); border-left: 2px solid var(--accent); padding-left: 15px; margin: 100px 0 40px; text-transform: uppercase; letter-spacing: 4px; font-size: 0.75rem; }
-        .dl-btn { display: inline-block; padding: 12px 28px; border: 1px solid #333; color: #888; border-radius: 4px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 0.8rem; background: transparent; transition: 0.3s; }
-        .dl-btn:hover { border-color: var(--accent); color: var(--accent); }
-        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .dl-btn { display: inline-block; padding: 12px 28px; border: 1px solid #333; color: #888; border-radius: 4px; font-weight: bold; cursor: pointer; text-decoration: none; font-size: 0.8rem; transition: 0.3s; }
+        .dl-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(255,204,0,0.05); }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
 <body>
 
 <div id="ptr-wrap"><div class="spinner"></div></div>
 
-<div id="page-wrapper">
+<div id="page-wrapper" style="transform: translateY(20px);">
     <nav>
         <div class="nav-inner">
             <div class="logo" onclick="handleNavClick('hero')">JLWLIMOU</div>
@@ -126,30 +131,24 @@
     let siteData = null;
     let scrollLockTimer = null;
 
-    // --- 核心：模拟下拉刷新视觉效果 (PC + 移动) ---
-    function simulatePullDown() {
+    // --- 模拟刷新视觉效果 (优化：不干扰滚轮) ---
+    function simulateRefresh() {
         const ptr = document.getElementById('ptr-wrap');
         const wrapper = document.getElementById('page-wrapper');
-        
-        // 1. 初始化状态：开启加载圈，页面向下移动
-        ptr.style.display = 'flex';
-        wrapper.style.transition = 'none';
-        wrapper.style.transform = 'translateY(60px)';
-        
-        // 2. 模拟数据加载完成后回弹
+        ptr.style.opacity = '1';
         setTimeout(() => {
-            wrapper.style.transition = 'transform 0.6s cubic-bezier(0.23, 1, 0.32, 1)';
-            wrapper.style.transform = 'translateY(0)';
-            setTimeout(() => { ptr.style.display = 'none'; }, 600);
-        }, 1000); // 加载持续时间
+            wrapper.classList.add('loaded');
+            ptr.style.opacity = '0';
+        }, 1000);
     }
 
-    // 监听浏览器刷新动作
     if (performance.getEntriesByType('navigation')[0].type === 'reload') {
-        simulatePullDown();
+        simulateRefresh();
+    } else {
+        document.getElementById('page-wrapper').classList.add('loaded');
     }
 
-    // --- 数据加载与渲染 ---
+    // --- 数据加载 ---
     async function loadData() {
         try {
             const res = await fetch('data.json');
@@ -159,10 +158,10 @@
             document.getElementById('phone-val').innerText = siteData.phone;
             renderHome();
             renderAccordion();
-        } catch(e) { console.error("Load Error"); }
+        } catch(e) { console.error("Data loading failed."); }
     }
 
-    // --- 导航与高亮逻辑 ---
+    // --- 导航逻辑 (防抖动) ---
     function highlightUI(id) {
         document.querySelectorAll('#smart-nav a').forEach(a => a.classList.toggle('active', a.getAttribute('data-sec') === id));
         document.querySelectorAll('.highlight-target').forEach(box => box.classList.toggle('active-border', box.id === id));
@@ -185,22 +184,18 @@
         const sections = ['hero', 'featured', 'resume', 'contact'];
         let current = "";
         let minDiff = Infinity;
-        const midLine = window.innerHeight / 2;
         sections.forEach(id => {
             const el = document.getElementById(id);
             if(el) {
                 const rect = el.getBoundingClientRect();
-                const center = rect.top + rect.height / 2;
-                const diff = Math.abs(midLine - center);
-                if (rect.top < window.innerHeight * 0.8 && rect.bottom > window.innerHeight * 0.2) {
-                    if (diff < minDiff) { minDiff = diff; current = id; }
-                }
+                const diff = Math.abs(rect.top - 100);
+                if (diff < minDiff) { minDiff = diff; current = id; }
             }
         });
         if(current) highlightUI(current);
     });
 
-    // --- 作品渲染与弹窗 ---
+    // --- 渲染逻辑 ---
     function renderHome() {
         let html = '';
         siteData.categories.forEach((cat, cIdx) => {
@@ -251,7 +246,7 @@
         const wrapper = document.getElementById(`cat-wrapper-${catIdx}`);
         const content = wrapper.querySelector('.accordion-content');
         const header = wrapper.querySelector('.acc-header');
-        content.style.maxHeight = '6000px';
+        content.style.maxHeight = '10000px';
         header.querySelector('span').innerText = '-';
         setTimeout(() => {
             const targetItem = wrapper.querySelector(`.item[data-title="${title}"]`);
@@ -264,8 +259,8 @@
 
     function toggleAccordion(el) {
         const content = el.nextElementSibling;
-        const isOpen = content.style.maxHeight === '6000px';
-        content.style.maxHeight = isOpen ? '0' : '6000px';
+        const isOpen = content.style.maxHeight !== '0px' && content.style.maxHeight !== '';
+        content.style.maxHeight = isOpen ? '0' : '10000px';
         el.querySelector('span').innerText = isOpen ? '+' : '-';
     }
 
