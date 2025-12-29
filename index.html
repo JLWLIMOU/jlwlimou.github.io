@@ -7,31 +7,26 @@
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
         
-        /* 核心：保持页面宽度恒定，防止滚动条消失抖动 */
+        /* 核心：全站始终只有一根滚动条，由 HTML 掌控 */
         html { 
             scroll-behavior: smooth; 
             overflow-y: scroll; 
             background: #0a0a0a;
-            scrollbar-gutter: stable; 
+            scrollbar-gutter: stable; /* 关键：永久锁定滚动条占位，防止抖动 */
         }
         
-        :root { --accent: #ffcc00; --bg: #0a0a0a; --card: #161616; }
-        body { background: var(--bg); color: #e0e0e0; font-family: -apple-system, sans-serif; margin: 0; overflow-x: hidden; }
-        
-        /* 弹窗激活时，锁定首页滚动，但由于 scrollbar-gutter 存在，页面不会横移 */
-        body.modal-lock { overflow: hidden !important; height: 100vh; }
+        :root { --accent: #ffcc00; --bg: #0a0a0a; }
+        body { background: var(--bg); color: #e0e0e0; font-family: -apple-system, sans-serif; margin: 0; }
 
-        #main-content { display: none; opacity: 0; transition: opacity 0.8s ease; }
+        /* 首页容器：当弹窗开启时，它会被设为隐藏，防止双重高度叠加 */
+        #main-content { opacity: 0; transition: opacity 0.8s ease; }
         .container { width: 92%; max-width: 1400px; margin: 0 auto; }
         
-        /* 导航高亮 */
         nav { width: 100%; position: sticky; top: 0; background: rgba(10,10,10,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid #222; z-index: 1000; }
         .nav-inner { padding: 20px 0; display: flex; justify-content: space-between; align-items: center; width: 92%; max-width: 1400px; margin: 0 auto; }
         .logo { color: var(--accent); font-weight: bold; font-size: 1.4rem; letter-spacing: 2px; cursor: pointer; }
-        .nav-links a { color: #888; text-decoration: none; margin-left: 25px; font-size: 0.9rem; transition: 0.3s; }
-        .nav-links a:hover { color: var(--accent); text-shadow: 0 0 8px rgba(255,204,0,0.3); }
 
-        /* 作品网格与放大逻辑 */
+        /* 作品网格 */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 40px; position: relative; }
         .item { position: relative; height: 320px; cursor: pointer; }
         .item-inner {
@@ -39,16 +34,11 @@
             background: #111; border: 1px solid #222; border-radius: 12px;
             overflow: hidden; transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); z-index: 10;
         }
-        .media { width: 100%; height: 250px; background: #000; transition: height 0.5s ease; }
+        .media { width: 100%; height: 250px; background: #000; }
         .media video, .media img { width: 100%; height: 100%; object-fit: contain; }
         .info { padding: 15px; font-size: 0.85rem; color: #666; background: #161616; text-align: center; }
 
-        /* 悬停 */
-        @media (hover: hover) {
-            .item:not(.active):hover .item-inner { transform: scale(1.03); border-color: var(--accent); z-index: 50; }
-        }
-
-        /* 激活态放大：偏移量增加 */
+        /* 放大预览逻辑 */
         #accordion-root .item.active .item-inner {
             transform: scale(1.06) translateY(-140px);
             box-shadow: 0 40px 150px rgba(0,0,0,1);
@@ -57,7 +47,7 @@
         }
         #accordion-root .item.active .media { height: 520px; }
 
-        /* 分类渐变 */
+        /* 分类展开渐变 */
         .accordion-item { border-bottom: 1px solid #222; }
         .accordion-header { padding: 40px 0; cursor: pointer; display:flex; justify-content:space-between; align-items:center; }
         .accordion-content { 
@@ -66,49 +56,38 @@
         }
         .accordion-content.show { display: block; opacity: 1; transform: translateY(0); }
 
-        /* 弹窗容器 */
+        /* 弹窗重构：不再是 fixed 100vh 滚动，而是跟随 body 滚动的超长图层 */
         #portfolio-modal { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            position: absolute; /* 关键改动：设为 absolute，让 body 控制滚动 */
+            top: 0; left: 0; width: 100%; min-height: 100vh;
             background: var(--bg); z-index: 2000; 
-            transform: translateY(100%);
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
-            overflow-y: scroll; /* 始终开启弹窗内部滚动 */
+            display: none; /* 初始完全不占用空间 */
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
         }
-        #portfolio-modal.active { transform: translateY(0); }
+        #portfolio-modal.active { display: block; opacity: 1; transform: translateY(0); }
         .modal-header { position: sticky; top: 0; background: rgba(10,10,10,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #222; z-index: 2001; }
-        
-        .section-title { color: var(--accent); border-left: 3px solid var(--accent); padding-left: 15px; margin: 80px 0 30px; letter-spacing: 4px; font-size: 0.8rem; }
-        .footer-sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; margin: 100px 0; padding-bottom: 80px; }
-        .footer-card { background: #111; padding: 40px; border-radius: 12px; border: 1px solid #222; }
-        .dl-btn { border: 1px solid var(--accent); color: var(--accent); background: transparent; padding: 12px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .dl-btn:hover { background: var(--accent); color: #000; }
 
+        .dl-btn { border: 1px solid var(--accent); color: var(--accent); background: transparent; padding: 12px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; }
         footer { padding: 40px 0; text-align: center; color: #333; font-size: 0.8rem; border-top: 1px solid #222; }
-        .arrow { transition: transform 0.4s; color: #444; }
+        .arrow { transition: transform 0.4s; }
     </style>
 </head>
 <body onclick="clearActiveItems(event)">
 
-<nav>
+<nav id="site-nav">
     <div class="nav-inner">
-        <div class="logo" onclick="window.scrollTo({top:0, behavior:'smooth'})">JLWLIMOU</div>
-        <div class="nav-links">
-            <a href="#featured">精选</a>
-            <a href="#resume">简历</a>
-            <a href="#contact">联系</a>
-        </div>
+        <div class="logo" onclick="toggleModal(false)">JLWLIMOU</div>
+        <div style="color: #666; font-size: 0.8rem;">3D ANIMATOR</div>
     </div>
 </nav>
 
 <div id="main-content">
     <div class="container">
-        <header class="hero"><h1>Focus on<br>Maya Animation.</h1><p id="about-text">Loading...</p></header>
-        <div id="featured"><h2 class="section-title">精选作品 / FEATURED</h2><div id="featured-grid" class="grid"></div></div>
+        <header style="padding: 120px 0;"><h1>Focus on<br>Maya Animation.</h1><p id="about-text">Loading...</p></header>
+        <div id="featured"><div id="featured-grid" class="grid"></div></div>
         <div style="text-align:center; margin: 80px 0;"><button class="dl-btn" style="border-color:#444; color:#888" onclick="toggleModal(true)">MORE WORKS +</button></div>
-        <div class="footer-sections">
-            <div id="resume" class="footer-card"><span>RESUME</span><br><br><button class="dl-btn" id="resume-dl">Download PDF</button></div>
-            <div id="contact" class="footer-card"><span>CONTACT</span><br><br><span id="email-val" style="display:block; margin-bottom:8px;">-</span><span id="phone-val">-</span></div>
-        </div>
         <footer>&copy; 2025 JLWLIMOU.</footer>
     </div>
 </div>
@@ -117,25 +96,21 @@
     <div class="modal-header">
         <div class="nav-inner">
             <h2 style="margin:0; font-size:1.1rem; color:var(--accent);">FULL LIST</h2>
-            <button onclick="toggleModal(false)" style="background:var(--accent); border:none; padding:8px 20px; border-radius:4px; font-weight:bold; cursor:pointer;">CLOSE</button>
+            <button onclick="toggleModal(false)" style="background:var(--accent); border:none; padding:8px 20px; border-radius:4px; font-weight:bold; cursor:pointer;">CLOSE / 返回</button>
         </div>
     </div>
-    <div class="container" id="accordion-root" style="padding: 100px 0 300px;"></div>
+    <div class="container" id="accordion-root" style="padding: 80px 0 300px;"></div>
 </div>
 
 <script>
-    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-    window.scrollTo(0, 0);
-
     let siteData = null;
+    let lastScrollPos = 0; // 记录首页滚动位置
 
     async function loadData() {
         try {
             const res = await fetch('data.json?t=' + Date.now());
             siteData = await res.json();
             document.getElementById('about-text').innerText = siteData.about;
-            document.getElementById('email-val').innerText = siteData.email;
-            document.getElementById('phone-val').innerText = siteData.phone;
             renderAll();
         } catch(e) {}
     }
@@ -151,10 +126,7 @@
         });
         fGrid.innerHTML = fHtml;
         renderAccordion();
-        setTimeout(() => {
-            document.getElementById('main-content').style.display = 'block';
-            setTimeout(() => { document.getElementById('main-content').style.opacity = '1'; }, 10);
-        }, 100);
+        document.getElementById('main-content').style.opacity = '1';
     }
 
     function renderItem(i, context, id) {
@@ -216,13 +188,17 @@
 
     function toggleModal(show, targetId = null) {
         const m = document.getElementById('portfolio-modal');
-        const b = document.body;
-        
-        if (show) {
-            m.classList.add('active');
-            // 关键：等弹窗动画进行一大半（400ms）再禁用 body 滚轮，防止双滚轮闪现
-            setTimeout(() => { if(m.classList.contains('active')) b.classList.add('modal-lock'); }, 450);
+        const main = document.getElementById('main-content');
+        const nav = document.getElementById('site-nav');
 
+        if (show) {
+            lastScrollPos = window.scrollY; // 1. 记住位置
+            window.scrollTo(0, 0); // 2. 瞬间回顶
+            
+            main.style.display = 'none'; // 3. 卸载首页（关键：防止双滚动条）
+            nav.style.display = 'none';
+            m.classList.add('active'); // 4. 激活弹窗
+            
             if (targetId) {
                 setTimeout(() => {
                     const targetEl = m.querySelector(`.item[data-id="${targetId}"]`);
@@ -232,15 +208,19 @@
                             targetEl.classList.add('active');
                             const v = targetEl.querySelector('video'); if (v) v.play();
                             targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }, 300);
+                        }, 200);
                     }
-                }, 400); 
+                }, 100); 
             }
         } else {
-            // 关键：点击关闭瞬间立刻恢复首页滚轮，防止首页卡死
-            b.classList.remove('modal-lock');
             m.classList.remove('active');
-            clearActiveItems();
+            setTimeout(() => {
+                m.style.display = 'none';
+                main.style.display = 'block';
+                nav.style.display = 'block';
+                window.scrollTo(0, lastScrollPos); // 5. 回到之前位置
+                clearActiveItems();
+            }, 400);
         }
     }
 
