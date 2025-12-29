@@ -20,18 +20,15 @@
         .nav-links a { color: #888; text-decoration: none; margin-left: 25px; font-size: 0.9rem; transition: 0.3s; }
         .nav-links a:hover { color: var(--accent); }
 
-        .hero { padding: 120px 0; border-bottom: 1px solid #222; }
-        .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin: 0; color: #fff; line-height: 1.1; }
-
         /* 作品网格 */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 40px; position: relative; }
         .item { position: relative; height: 320px; cursor: pointer; }
         .item-inner {
             position: absolute; top: 0; left: 0; width: 100%;
             background: #111; border: 1px solid #222; border-radius: 12px;
-            overflow: hidden; transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1); z-index: 10;
+            overflow: hidden; transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); z-index: 10;
         }
-        .media { width: 100%; height: 250px; background: #000; transition: height 0.4s ease; }
+        .media { width: 100%; height: 250px; background: #000; transition: height 0.5s ease; }
         .media img, .media video { width: 100%; height: 100%; display: block; object-fit: contain; }
         .info { padding: 15px; font-size: 0.85rem; color: #666; background: #161616; text-align: center; }
 
@@ -42,7 +39,7 @@
             }
         }
 
-        /* 放大逻辑：增加 z-index 和偏移 */
+        /* 放大预览 */
         #accordion-root .item.active { z-index: 9999 !important; }
         #accordion-root .item.active .item-inner {
             transform: scale(1.06) translateY(-140px);
@@ -51,26 +48,24 @@
         }
         #accordion-root .item.active .media { height: 520px; }
 
-        /* 分类栏动画核心修复 */
+        /* 新：分类栏渐变显示动画 */
         .accordion-item { border-bottom: 1px solid #222; }
-        .accordion-item.active-cat { z-index: 500; position: relative; }
-        .accordion-header { padding: 40px 0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .accordion-header { padding: 40px 0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+        .accordion-header:hover { background: rgba(255,255,255,0.02); }
         
         .accordion-content {
-            display: grid;
-            grid-template-rows: 0fr;
-            transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden; /* 默认隐藏防止动画闪烁 */
+            display: none; /* 初始隐藏 */
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
         }
-        .accordion-content.open { 
-            grid-template-rows: 1fr; 
-            /* 关键：只有在展开状态下，且动画完成后才允许 visible */
-            overflow: visible; 
-            transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1), overflow 0s 0.5s; 
+        .accordion-content.show {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
         }
-        .accordion-inner { min-height: 0; }
 
-        /* 弹窗与滚动 */
+        /* 弹窗 */
         #portfolio-modal { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100vh; 
             background: var(--bg); z-index: 2000; 
@@ -85,7 +80,6 @@
         .footer-sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; margin: 100px 0; padding-bottom: 80px; }
         .footer-card { background: #111; padding: 40px; border-radius: 12px; border: 1px solid #222; }
         .footer-card span { color: var(--accent); font-size: 0.75rem; display: block; margin-bottom: 15px; }
-
         .dl-btn { display: inline-block; padding: 16px 40px; border: 1px solid var(--accent); color: var(--accent); text-decoration: none; border-radius: 40px; font-weight: bold; transition: 0.3s; margin-top: 15px; cursor: pointer; background: transparent; }
         .dl-btn:hover { background: var(--accent); color: #000; }
         
@@ -110,28 +104,13 @@
     <div class="container">
         <header class="hero">
             <h1>Focus on<br>Maya Animation.</h1>
-            <p id="about-text">Loading...</p>
+            <p id="about-text">Loading content...</p>
         </header>
-
-        <div id="featured">
-            <h2 class="section-title">精选作品集 / FEATURED</h2>
-            <div id="featured-grid" class="grid"></div>
-        </div>
-
-        <div style="text-align:center; margin: 80px 0;">
-            <button class="dl-btn" style="border-color:#444; color:#888" onclick="toggleModal(true)">查看完整列表 / MORE WORKS +</button>
-        </div>
-
+        <div id="featured"><h2 class="section-title">精选作品集 / FEATURED</h2><div id="featured-grid" class="grid"></div></div>
+        <div style="text-align:center; margin: 80px 0;"><button class="dl-btn" style="border-color:#444; color:#888" onclick="toggleModal(true)">MORE WORKS +</button></div>
         <div class="footer-sections">
-            <div id="resume" class="footer-card">
-                <span>Resume / 简历</span>
-                <button class="dl-btn" id="resume-dl">下载简历 (PDF)</button>
-            </div>
-            <div id="contact" class="footer-card">
-                <span>Contact / 联系</span>
-                <span id="email-val" style="color:#fff; font-family:monospace;">-</span>
-                <span id="phone-val" style="color:#fff; font-family:monospace;">-</span>
-            </div>
+            <div id="resume" class="footer-card"><span>Resume</span><button class="dl-btn" id="resume-dl">下载简历 (PDF)</button></div>
+            <div id="contact" class="footer-card"><span>Contact</span><span id="email-val" style="color:#fff;">-</span><span id="phone-val" style="color:#fff; display:block; margin-top:10px;">-</span></div>
         </div>
         <footer>&copy; 2025 JLWLIMOU.</footer>
     </div>
@@ -174,9 +153,8 @@
 
             setTimeout(() => {
                 window.scrollTo(0, 0);
-                const main = document.getElementById('main-content');
-                main.style.display = 'block';
-                setTimeout(() => { main.style.opacity = '1'; }, 10);
+                document.getElementById('main-content').style.display = 'block';
+                setTimeout(() => { document.getElementById('main-content').style.opacity = '1'; }, 10);
             }, 100);
         } catch(e) {}
     }
@@ -186,7 +164,7 @@
             <div class="item" data-id="${id}" onclick="handleItemClick(event, this, '${context}', '${id}')">
                 <div class="item-inner">
                     <div class="media">
-                        ${i.type === 'video' ? `<video src="${i.url}" loop muted playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>` : `<img src="${i.url}">`}
+                        ${i.type === 'video' ? `<video src="${i.url}" loop muted playsinline></video>` : `<img src="${i.url}">`}
                     </div>
                     <div class="info">${i.title || 'Project'}</div>
                 </div>
@@ -202,7 +180,6 @@
             clearActiveItems();
             if (!isActive) {
                 el.classList.add('active');
-                el.closest('.accordion-item').classList.add('active-cat');
                 const v = el.querySelector('video'); if (v) v.play();
             }
         }
@@ -213,21 +190,18 @@
             el.classList.remove('active');
             const v = el.querySelector('video'); if (v) v.pause();
         });
-        document.querySelectorAll('.accordion-item').forEach(at => at.classList.remove('active-cat'));
     }
 
     function renderAccordion() {
         const root = document.getElementById('accordion-root');
         root.innerHTML = siteData.categories.map((cat, catIdx) => `
-            <div class="accordion-item" id="cat-box-${catIdx}">
+            <div class="accordion-item">
                 <div class="accordion-header" onclick="toggleAccordion(this)">
                     <h3>${cat.name}</h3>
                     <span class="arrow">▼</span>
                 </div>
                 <div class="accordion-content">
-                    <div class="accordion-inner">
-                        <div class="grid" style="padding: 40px 0 80px;">${cat.items.map(i => renderItem(i, 'modal', i.unique_id)).join('')}</div>
-                    </div>
+                    <div class="grid" style="padding: 40px 0 80px;">${cat.items.map(i => renderItem(i, 'modal', i.unique_id)).join('')}</div>
                 </div>
             </div>`).join('');
     }
@@ -235,14 +209,17 @@
     function toggleAccordion(el, forceOpen = false) {
         const content = el.nextElementSibling;
         const arrow = el.querySelector('.arrow');
-        const isOpen = content.classList.contains('open');
+        const isShowing = content.classList.contains('show');
 
-        if (forceOpen || !isOpen) {
-            content.classList.add('open');
+        if (forceOpen || !isShowing) {
+            content.style.display = 'block';
+            content.offsetWidth; // 强制重绘，确保渐变生效
+            content.classList.add('show');
             arrow.style.transform = 'rotate(180deg)';
         } else {
-            content.classList.remove('open');
+            content.classList.remove('show');
             arrow.style.transform = 'rotate(0deg)';
+            setTimeout(() => { if(!content.classList.contains('show')) content.style.display = 'none'; }, 600);
             clearActiveItems();
         }
     }
@@ -253,27 +230,25 @@
         document.documentElement.style.overflow = show ? 'hidden' : 'scroll';
 
         if (show && targetId) {
-            // 大幅提速逻辑：缩短延迟
+            // 引导联动：极速渐变显示
             setTimeout(() => {
                 const targetEl = m.querySelector(`.item[data-id="${targetId}"]`);
                 if (targetEl) {
-                    toggleAccordion(targetEl.closest('.accordion-item').querySelector('.accordion-header'), true);
+                    const header = targetEl.closest('.accordion-item').querySelector('.accordion-header');
+                    toggleAccordion(header, true);
                     
-                    // 仅等待展开动画过半即执行放大
+                    // 分类内容渐变的同时，开始放大目标作品
                     setTimeout(() => {
                         targetEl.classList.add('active');
-                        targetEl.closest('.accordion-item').classList.add('active-cat');
                         const v = targetEl.querySelector('video'); if (v) v.play();
                         targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 350); 
+                    }, 300); 
                 }
-            }, 300); // 弹窗还没完全推到底就开启分类展开
+            }, 300); 
         } else if (!show) {
             clearActiveItems();
         }
     }
-
-    document.getElementById('resume-dl').onclick = async () => { /* 下载逻辑保持不变 */ };
 
     loadData();
 </script>
