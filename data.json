@@ -1,24 +1,7 @@
 {
   "categories": [
     {
-      "id": "cat_1",
-      "name": "动画短片",
-      "items": []
-    },
-    {
-      "id": "cat_2",
-      "name": "小练习",
-      "items": [
-        {
-          "type": "image",
-          "url": "render1.jpg",
-          "title": "渲染练习 01"
-        }
-      ]
-    },
-    {
-      "id": "cat_1767000325016",
-      "name": "新建分类",
+      "name": "新分类",
       "items": []
     }
   ],
