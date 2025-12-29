@@ -12,7 +12,7 @@
             -webkit-user-select: none;
         }
         
-        /* 核心修复：始终强制显示滚动条基座，防止任何抖动 */
+        /* 强制显示滚动条轨道防止抖动 */
         html { 
             scroll-behavior: smooth; 
             overflow-y: scroll; 
@@ -21,7 +21,8 @@
         :root { --accent: #ffcc00; --bg: #0a0a0a; --card: #161616; }
         body { background: var(--bg); color: #e0e0e0; font-family: -apple-system, sans-serif; margin: 0; overflow-x: hidden; }
         
-        #main-content { opacity: 0; transition: opacity 0.6s ease; }
+        /* 刷新保护：初识状态全透明 */
+        #main-content { opacity: 0; transition: opacity 0.8s ease; }
         .container { width: 92%; max-width: 1400px; margin: 0 auto; }
         
         nav { width: 100%; position: sticky; top: 0; background: rgba(10,10,10,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid #222; z-index: 1000; }
@@ -33,7 +34,6 @@
         .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin: 0; color: #fff; line-height: 1.1; }
         #about-text { font-size: 1.2rem; color: #888; max-width: 800px; line-height: 1.8; margin-top: 20px; }
 
-        /* 作品网格 */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 40px; position: relative; }
         .item { position: relative; height: 320px; cursor: pointer; }
         
@@ -48,7 +48,6 @@
         .media img, .media video { width: 100%; height: 100%; display: block; object-fit: contain; background: #000; pointer-events: none; }
         .info { padding: 15px; font-size: 0.85rem; color: #666; background: #161616; text-align: center; }
 
-        /* 全站统一悬停 */
         @media (hover: hover) {
             .item:not(.active):hover .item-inner { 
                 transform: scale(1.03); 
@@ -58,23 +57,20 @@
             }
         }
 
-        /* 弹窗内预览覆盖逻辑 */
         #accordion-root .item.active { z-index: 1001; }
         #accordion-root .item.active .item-inner {
-            width: 104%; left: -2%;
-            top: -120px; /* 向上覆盖 */
+            width: 104%; left: -2%; top: -120px;
             box-shadow: 0 40px 100px rgba(0,0,0,0.9);
             border-color: var(--accent);
         }
         #accordion-root .item.active .media { height: 500px; }
 
-        /* 弹窗核心修复：不再改变overflow，防止抖动 */
         #portfolio-modal { 
             position: fixed; top: 100%; left: 0; width: 100%; height: 100%; 
             background: var(--bg); z-index: 2000; 
-            overflow-y: auto; /* 弹窗自带滚动 */
+            overflow-y: auto; 
             transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); 
-            overscroll-behavior: contain; /* 关键：阻止弹窗滚动影响底层 */
+            overscroll-behavior: contain;
         }
         #portfolio-modal.active { transform: translateY(-100%); }
         .modal-header { position: sticky; top: 0; background: rgba(10,10,10,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #222; z-index: 2001; }
@@ -143,7 +139,16 @@
 </div>
 
 <script>
-    if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+    /**
+     * 第一优先级：禁用浏览器的滚动恢复行为
+     */
+    if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+    }
+
+    /**
+     * 第二优先级：在脚本开始运行时立即置顶（此时 DOM 可能未加载，作为预防）
+     */
     window.scrollTo(0, 0);
 
     let siteData = null;
@@ -152,6 +157,8 @@
         try {
             const res = await fetch('data.json?t=' + Date.now());
             siteData = await res.json();
+            
+            // 填充内容
             document.getElementById('about-text').innerText = siteData.about;
             document.getElementById('email-val').innerText = siteData.email;
             document.getElementById('phone-val').innerText = siteData.phone;
@@ -159,14 +166,24 @@
             const fGrid = document.getElementById('featured-grid');
             let fHtml = '';
             siteData.categories.forEach(cat => {
-                cat.items.filter(i => i.featured).forEach(item => { fHtml += renderItem(item, 'featured'); });
+                cat.items.filter(i => i.featured).forEach(item => { 
+                    fHtml += renderItem(item, 'featured'); 
+                });
             });
             fGrid.innerHTML = fHtml || '<p>暂无精选作品</p>';
             renderAccordion();
 
-            setTimeout(() => {
-                document.getElementById('main-content').style.opacity = '1';
-            }, 100);
+            /**
+             * 第三优先级：数据渲染完成后，在显示内容前强制重置坐标
+             */
+            requestAnimationFrame(() => {
+                window.scrollTo(0, 0);
+                setTimeout(() => {
+                    document.getElementById('main-content').style.opacity = '1';
+                    window.scrollTo(0, 0); // 最终保险
+                }, 50);
+            });
+
         } catch(e) { console.error("Data Error"); }
     }
 
@@ -196,7 +213,6 @@
                 el.classList.add('active');
                 const video = el.querySelector('video');
                 if (video) video.play();
-                // 彻底移除 scrollIntoView 动作，解决动画不流畅问题
             }
         }
     }
@@ -253,6 +269,9 @@
             clearActiveItems();
         }
     }
+
+    // 最后的安全网：页面完全加载后再次执行置顶
+    window.onload = () => window.scrollTo(0, 0);
 
     loadData();
 </script>
