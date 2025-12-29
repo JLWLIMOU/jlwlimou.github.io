@@ -20,7 +20,15 @@
         video::-internal-media-controls-download-button,
         video::-webkit-media-controls-remote-playback-button { display: none !important; }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            /* 禁用双击选中文本（变蓝） */
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none;    /* Firefox */
+            -ms-user-select: none;     /* IE/Edge */
+            user-select: none;         /* 标准语法 */
+        }
         body, html { 
             margin: 0; padding: 0; background: var(--bg); color: var(--text);
             font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -92,7 +100,13 @@
         }
         .lib-cat-header:hover { border-color: var(--accent); }
         .lib-cat-title { font-size: 0.75rem; letter-spacing: 3px; color: var(--accent); font-weight: 800; text-transform: uppercase; }
-        .lib-cat-icon { color: var(--text-dim); font-family: monospace; font-size: 1rem; }
+        .lib-cat-icon { 
+            color: var(--text-dim); 
+            font-family: monospace; 
+            font-size: 1rem; 
+            /* 强制图标不可被选中 */
+            pointer-events: none; 
+        }
         
         /* 修改后的折叠容器：性能最优 */
 .lib-cat-content { 
@@ -263,7 +277,7 @@
             libHtml += `
                 <div class="lib-cat-header" onclick="toggleCategory(${index})">
                     <span class="lib-cat-title">${cat.name}</span>
-                    <span class="lib-cat-icon" id="cat-icon-${index}">[+]</span>
+                    <span class="lib-cat-icon" id="cat-icon-${index}" style="user-select:none; pointer-events:none;">[+]</span>
                 </div>
                 <div class="lib-cat-content" id="cat-content-${index}">
                     <div class="grid">
@@ -285,14 +299,16 @@
         const v = document.getElementById('viewer');
         const box = document.getElementById('viewer-media');
         document.getElementById('dl-btn').href = url;
+        
+        // 这里的修改彻底解决了图片变蓝和拖拽问题
         box.innerHTML = type === 'video' 
             ? `<video src="${url}" controls autoplay loop playsinline controlsList="nodownload"></video>` 
-            : `<img src="${url}">`;
+            : `<img src="${url}" draggable="false" oncontextmenu="return false;">`;
+            
         v.style.display = 'flex';
         setTimeout(() => v.classList.add('active'), 10);
         document.body.style.overflow = 'hidden';
     }
-
     function closeViewer() {
         const v = document.getElementById('viewer');
         v.classList.remove('active');
