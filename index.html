@@ -186,7 +186,10 @@
     // 智能渲染函数
     async function init() {
         try {
-            const res = await fetch('data.json');
+            // 【方案A：时间戳去缓存】通过动态查询字符串强制获取最新 data.json
+            const cacheBuster = new Date().getTime();
+            const res = await fetch(`data.json?v=${cacheBuster}`);
+            
             siteData = await res.json();
             document.getElementById('about-text').innerText = siteData.about;
             document.getElementById('exp-text').innerText = siteData.experience || "";
@@ -194,7 +197,7 @@
             document.getElementById('email-link').href = `mailto:${siteData.email}`;
             document.getElementById('phone-val').innerText = siteData.phone || "";
             render();
-        } catch(e) { console.error("JSON Error"); }
+        } catch(e) { console.error("JSON Error:", e); }
     }
 
     // 播放控制优化：悬停才加载并播放
