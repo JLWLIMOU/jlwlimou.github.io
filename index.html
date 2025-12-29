@@ -23,70 +23,36 @@
         .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin: 0; color: #fff; line-height: 1.1; }
         #about-text { font-size: 1.2rem; color: #888; max-width: 800px; line-height: 1.8; margin-top: 20px; }
 
-        /* --- 核心：浮层式拉大幕 --- */
+        /* 核心：浮层式拉大幕 */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 40px; }
-        
-        .item { 
-            position: relative; 
-            height: 320px; /* 固定占位，防止推走邻近元素 */
-            z-index: 1;
-        }
-
+        .item { position: relative; height: 320px; z-index: 1; }
         .item-inner {
-            position: absolute; /* 脱离文档流，实现遮挡效果 */
-            top: 0; left: 0; width: 100%;
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 12px;
-            overflow: hidden;
-            /* iOS 风格缓动曲线 */
-            transition: all 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
-            z-index: 5;
+            position: absolute; top: 0; left: 0; width: 100%;
+            background: #111; border: 1px solid #222; border-radius: 12px;
+            overflow: hidden; transition: all 0.7s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 5;
         }
+        .media { width: 100%; height: 250px; background: #000; transition: height 0.7s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .media img, .media video { width: 100%; height: 100%; display: block; object-fit: cover; transition: object-fit 0.4s ease; }
 
-        .media { 
-            width: 100%; 
-            height: 250px; /* 闭合高度 */
-            background: #000;
-            transition: height 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-
-        .media img, .media video { 
-            width: 100%; height: 100%; 
-            display: block;
-            object-fit: cover;
-            transition: object-fit 0.4s ease;
-        }
-
-        /* 悬浮交互：独立窗口感 */
         .item:hover { z-index: 100; } 
-        .item:hover .item-inner {
-            width: 106%; /* 略微膨胀 */
-            left: -3%; 
-            box-shadow: 0 30px 60px rgba(0,0,0,0.9);
-            border-color: var(--accent);
-        }
-
-        .item:hover .media { 
-            height: 550px; /* 独立张开，遮挡下方内容 */
-        }
-
-        .item:hover .media img, 
-        .item:hover .media video {
-            object-fit: contain; /* 完整展示内容 */
-        }
+        .item:hover .item-inner { width: 106%; left: -3%; box-shadow: 0 30px 60px rgba(0,0,0,0.9); border-color: var(--accent); }
+        .item:hover .media { height: 550px; }
+        .item:hover .media img, .item:hover .media video { object-fit: contain; }
 
         .info { padding: 15px; font-size: 0.85rem; color: #666; background: #161616; text-align: center; }
 
-        /* 弹窗与页脚 */
+        /* 弹窗样式 */
         #portfolio-modal { position: fixed; top: 100%; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; overflow-y: auto; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
         #portfolio-modal.active { transform: translateY(-100%); }
         .modal-header { position: sticky; top: 0; background: rgba(10,10,10,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #222; z-index: 2001; }
         
+        /* 简历与联系方式卡片 (核心找回部分) */
         .footer-sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; margin-top: 100px; padding-bottom: 80px; }
         .footer-card { background: #111; padding: 40px; border-radius: 12px; border: 1px solid #222; }
+        .label-text { color: var(--accent); font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 10px; }
         .dl-btn { display: inline-block; padding: 16px 40px; border: 1px solid var(--accent); color: var(--accent); text-decoration: none; border-radius: 40px; font-weight: bold; transition: 0.3s; margin-top: 15px; cursor: pointer; background: transparent; }
         .dl-btn:hover { background: var(--accent); color: #000; }
+        .contact-val { display: block; font-family: monospace; color: #fff; font-size: 1.1rem; margin-top: 5px; }
         
         footer { padding: 40px 0; text-align: center; color: #333; font-size: 0.8rem; border-top: 1px solid #222; }
     </style>
@@ -107,7 +73,7 @@
 <div class="container">
     <header class="hero">
         <h1>Focus on<br>Maya Animation.</h1>
-        <p id="about-text">数据准备中...</p>
+        <p id="about-text">数据加载中...</p>
     </header>
 
     <div id="featured">
@@ -121,23 +87,24 @@
 
     <div class="footer-sections">
         <div id="resume" class="footer-card">
-            <span style="color:var(--accent); font-size:0.75rem; letter-spacing:2px; text-transform:uppercase;">Resume</span>
-            <p style="color:#666; margin: 10px 0 20px;">点击按钮获取最新简历</p>
+            <span class="label-text">Resume</span>
+            <p style="color:#666; margin: 10px 0 20px;">点击按钮获取最新简历 PDF</p>
             <button class="dl-btn" id="resume-dl">下载简历 (PDF)</button>
         </div>
         <div id="contact" class="footer-card">
-            <span style="color:var(--accent); font-size:0.75rem; letter-spacing:2px; text-transform:uppercase;">Contact Info</span>
+            <span class="label-text">Contact Info</span>
             <div style="margin-top:20px;">
-                <small style="color:#444">Email:</small><br>
-                <span id="email-val" style="color:#fff; font-family:monospace;">-</span>
+                <small style="color:#444">Email:</small>
+                <span id="email-val" class="contact-val">-</span>
             </div>
             <div style="margin-top:20px;">
-                <small style="color:#444">Phone / WeChat:</small><br>
-                <span id="phone-val" style="color:#fff; font-family:monospace;">-</span>
+                <small style="color:#444">Phone / WeChat:</small>
+                <span id="phone-val" class="contact-val">-</span>
             </div>
         </div>
     </div>
-    <footer>&copy; 2025 JLWLIMOU. Designed for Motion.</footer>
+
+    <footer>&copy; 2025 JLWLIMOU.</footer>
 </div>
 
 <div id="portfolio-modal">
@@ -151,7 +118,6 @@
 </div>
 
 <script>
-    /* --- 1. 刷新及滑动置顶逻辑 --- */
     if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
     window.scrollTo(0, 0);
 
@@ -162,24 +128,25 @@
             const res = await fetch('data.json?t=' + Date.now());
             siteData = await res.json();
             
-            // 联系方式与简介填充
+            // 填充核心数据
             document.getElementById('about-text').innerText = siteData.about;
             document.getElementById('email-val').innerText = siteData.email;
             document.getElementById('phone-val').innerText = siteData.phone;
 
-            // 渲染首页精选
             const fGrid = document.getElementById('featured-grid');
             let fHtml = '';
             siteData.categories.forEach(cat => {
                 cat.items.filter(i => i.featured).forEach(item => { fHtml += renderItem(item); });
             });
             fGrid.innerHTML = fHtml || '<p style="color:#444">暂无精选内容</p>';
-            
             renderAccordion();
-            
-            // 确保渲染完成后滑动置顶
-            setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 150);
-        } catch(e) { console.error("Data Error"); }
+
+            // 平滑滑动置顶逻辑
+            setTimeout(() => {
+                window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+            }, 100); 
+
+        } catch(e) { console.error("Data Load Error"); }
     }
 
     function renderItem(i) {
@@ -202,8 +169,8 @@
         root.innerHTML = siteData.categories.map(cat => `
             <div class="accordion-item" style="border-bottom:1px solid #222;">
                 <div class="accordion-header" style="padding:30px 0; cursor:pointer; display:flex; justify-content:space-between;" onclick="toggleAccordion(this)">
-                    <h3>${cat.name} <small style="color:#333; margin-left:10px;">${cat.items.length}</small></h3>
-                    <span class="arrow">▼</span>
+                    <h3 style="margin:0;">${cat.name} <small style="color:#333; margin-left:10px;">${cat.items.length}</small></h3>
+                    <span class="arrow" style="transition:0.3s; color:#444;">▼</span>
                 </div>
                 <div class="accordion-content" style="display:none; padding-bottom:50px;">
                     <div class="grid">${cat.items.map(i => renderItem(i)).join('')}</div>
@@ -216,10 +183,10 @@
         const content = el.nextElementSibling;
         const isOpen = content.style.display === 'block';
         content.style.display = isOpen ? 'none' : 'block';
-        el.querySelector('.arrow').style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+        el.querySelector('.arrow').style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
     }
 
-    // 简历下载反馈
+    // 简历下载及反馈逻辑
     document.getElementById('resume-dl').addEventListener('click', async function() {
         const btn = this; btn.innerText = "正在准备...";
         try {
@@ -230,7 +197,7 @@
             const a = document.createElement('a'); a.href = url; a.download = 'JLWLIMOU_Resume.pdf';
             document.body.appendChild(a); a.click();
             btn.innerText = "✅ 已开始下载";
-        } catch(e) { btn.innerText = "❌ 未找到简历文件"; }
+        } catch(e) { btn.innerText = "❌ 未找到文件"; }
         setTimeout(() => btn.innerText = "下载简历 (PDF)", 3000);
     });
 
@@ -239,10 +206,6 @@
         m.classList.toggle('active', show);
         document.body.style.overflow = show ? 'hidden' : 'auto';
     }
-
-    window.addEventListener('load', () => {
-        setTimeout(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, 50);
-    });
 
     loadData();
 </script>
