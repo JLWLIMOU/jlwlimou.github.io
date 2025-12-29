@@ -6,10 +6,25 @@
     <title>JLWLIMOU | 3D Animator Portfolio</title>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-        html { scroll-behavior: smooth; overflow-y: scroll; background: #0a0a0a; }
+        
+        /* 核心修复：防止滚动条消失导致抖动 */
+        html { 
+            scroll-behavior: smooth; 
+            overflow-y: scroll; 
+            background: #0a0a0a;
+            /* 现代浏览器方案：保留滚动条轨道空间 */
+            scrollbar-gutter: stable; 
+        }
+        
         :root { --accent: #ffcc00; --bg: #0a0a0a; --card: #161616; }
         body { background: var(--bg); color: #e0e0e0; font-family: -apple-system, sans-serif; margin: 0; overflow-x: hidden; }
         
+        /* 锁定背景滚动的特殊类 */
+        body.modal-open {
+            height: 100vh;
+            overflow: hidden;
+        }
+
         #main-content { display: none; opacity: 0; transition: opacity 0.8s ease; }
         .container { width: 92%; max-width: 1400px; margin: 0 auto; }
         
@@ -48,16 +63,15 @@
         }
         #accordion-root .item.active .media { height: 520px; }
 
-        /* 新：分类栏渐变显示动画 */
+        /* 分类栏 */
         .accordion-item { border-bottom: 1px solid #222; }
-        .accordion-header { padding: 40px 0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
-        .accordion-header:hover { background: rgba(255,255,255,0.02); }
+        .accordion-header { padding: 40px 0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         
         .accordion-content {
-            display: none; /* 初始隐藏 */
+            display: none;
             opacity: 0;
             transform: translateY(15px);
-            transition: opacity 0.6s ease, transform 0.6s ease;
+            transition: opacity 0.5s ease, transform 0.5s ease;
         }
         .accordion-content.show {
             display: block;
@@ -65,13 +79,13 @@
             transform: translateY(0);
         }
 
-        /* 弹窗 */
+        /* 弹窗核心逻辑：使用固定的滚动条空间 */
         #portfolio-modal { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: var(--bg); z-index: 2000; 
             transform: translateY(100%);
             transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); 
-            overflow-y: scroll; 
+            overflow-y: scroll; /* 弹窗始终显示滚动条轨道 */
         }
         #portfolio-modal.active { transform: translateY(0); }
         .modal-header { position: sticky; top: 0; background: rgba(10,10,10,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #222; z-index: 2001; }
@@ -79,9 +93,6 @@
         .section-title { color: var(--accent); border-left: 3px solid var(--accent); padding-left: 15px; margin: 80px 0 30px; text-transform: uppercase; letter-spacing: 4px; font-size: 0.8rem; }
         .footer-sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; margin: 100px 0; padding-bottom: 80px; }
         .footer-card { background: #111; padding: 40px; border-radius: 12px; border: 1px solid #222; }
-        .footer-card span { color: var(--accent); font-size: 0.75rem; display: block; margin-bottom: 15px; }
-        .dl-btn { display: inline-block; padding: 16px 40px; border: 1px solid var(--accent); color: var(--accent); text-decoration: none; border-radius: 40px; font-weight: bold; transition: 0.3s; margin-top: 15px; cursor: pointer; background: transparent; }
-        .dl-btn:hover { background: var(--accent); color: #000; }
         
         footer { padding: 40px 0; text-align: center; color: #333; font-size: 0.8rem; border-top: 1px solid #222; }
         .arrow { transition: transform 0.4s ease; display: inline-block; }
@@ -104,13 +115,13 @@
     <div class="container">
         <header class="hero">
             <h1>Focus on<br>Maya Animation.</h1>
-            <p id="about-text">Loading content...</p>
+            <p id="about-text">Loading...</p>
         </header>
-        <div id="featured"><h2 class="section-title">精选作品集 / FEATURED</h2><div id="featured-grid" class="grid"></div></div>
-        <div style="text-align:center; margin: 80px 0;"><button class="dl-btn" style="border-color:#444; color:#888" onclick="toggleModal(true)">MORE WORKS +</button></div>
+        <div id="featured"><h2 class="section-title">精选作品 / FEATURED</h2><div id="featured-grid" class="grid"></div></div>
+        <div style="text-align:center; margin: 80px 0;"><button class="dl-btn" style="border: 1px solid #444; color: #888; background: transparent; padding: 15px 30px; border-radius: 30px; cursor: pointer;" onclick="toggleModal(true)">MORE WORKS +</button></div>
         <div class="footer-sections">
-            <div id="resume" class="footer-card"><span>Resume</span><button class="dl-btn" id="resume-dl">下载简历 (PDF)</button></div>
-            <div id="contact" class="footer-card"><span>Contact</span><span id="email-val" style="color:#fff;">-</span><span id="phone-val" style="color:#fff; display:block; margin-top:10px;">-</span></div>
+            <div id="resume" class="footer-card"><span>RESUME</span><br><br><button class="dl-btn" id="resume-dl" style="border: 1px solid var(--accent); color: var(--accent); background: transparent; padding: 10px 20px; border-radius: 20px; cursor: pointer;">Download PDF</button></div>
+            <div id="contact" class="footer-card"><span>CONTACT</span><br><br><span id="email-val" style="display:block; margin-bottom: 10px;">-</span><span id="phone-val">-</span></div>
         </div>
         <footer>&copy; 2025 JLWLIMOU.</footer>
     </div>
@@ -213,39 +224,45 @@
 
         if (forceOpen || !isShowing) {
             content.style.display = 'block';
-            content.offsetWidth; // 强制重绘，确保渐变生效
+            content.offsetWidth; 
             content.classList.add('show');
             arrow.style.transform = 'rotate(180deg)';
         } else {
             content.classList.remove('show');
             arrow.style.transform = 'rotate(0deg)';
-            setTimeout(() => { if(!content.classList.contains('show')) content.style.display = 'none'; }, 600);
+            setTimeout(() => { if(!content.classList.contains('show')) content.style.display = 'none'; }, 500);
             clearActiveItems();
         }
     }
 
     function toggleModal(show, targetId = null) {
         const m = document.getElementById('portfolio-modal');
-        m.classList.toggle('active', show);
-        document.documentElement.style.overflow = show ? 'hidden' : 'scroll';
-
-        if (show && targetId) {
-            // 引导联动：极速渐变显示
-            setTimeout(() => {
-                const targetEl = m.querySelector(`.item[data-id="${targetId}"]`);
-                if (targetEl) {
-                    const header = targetEl.closest('.accordion-item').querySelector('.accordion-header');
-                    toggleAccordion(header, true);
-                    
-                    // 分类内容渐变的同时，开始放大目标作品
-                    setTimeout(() => {
-                        targetEl.classList.add('active');
-                        const v = targetEl.querySelector('video'); if (v) v.play();
-                        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 300); 
-                }
-            }, 300); 
-        } else if (!show) {
+        const b = document.body;
+        
+        if (show) {
+            // 先记录当前首页滚动位置，防止跳动
+            const scrollY = window.scrollY;
+            m.classList.add('active');
+            // 锁定 body 但不移除滚动条轨道
+            b.classList.add('modal-open');
+            
+            if (targetId) {
+                setTimeout(() => {
+                    const targetEl = m.querySelector(`.item[data-id="${targetId}"]`);
+                    if (targetEl) {
+                        const header = targetEl.closest('.accordion-item').querySelector('.accordion-header');
+                        toggleAccordion(header, true);
+                        setTimeout(() => {
+                            targetEl.classList.add('active');
+                            const v = targetEl.querySelector('video'); if (v) v.play();
+                            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 300);
+                    }
+                }, 400); 
+            }
+        } else {
+            m.classList.remove('active');
+            b.classList.remove('modal-open');
             clearActiveItems();
         }
     }
