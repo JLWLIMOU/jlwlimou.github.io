@@ -33,22 +33,13 @@
         .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.05); }
 
         .container { width: 92%; max-width: 1400px; margin: 0 auto; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; transition: 0.5s var(--ease-out); }
 
-        section { 
-            transition: all 0.4s var(--ease-out); 
-            border: 1px solid transparent;
-            border-radius: 20px;
-            padding: 20px;
-            margin: -20px; 
-        }
-        section:hover { 
-            border-color: rgba(255, 204, 0, 0.3);
-            background: rgba(255, 255, 255, 0.02);
-        }
+        section { transition: all 0.4s var(--ease-out); border: 1px solid transparent; border-radius: 20px; padding: 20px; margin: -20px; }
+        section:hover { border-color: rgba(255, 204, 0, 0.2); background: rgba(255, 255, 255, 0.02); }
 
-        /* --- 1. 原地放大核心逻辑修改 --- */
-        .item { position: relative; aspect-ratio: 16/10; z-index: 1; cursor: pointer; }
+        /* --- 核心：原地扩张逻辑 --- */
+        .item { position: relative; aspect-ratio: 16/10; z-index: 1; cursor: pointer; transition: 0.5s var(--ease-out); }
         .item.active { z-index: 999; }
         
         .item-inner { 
@@ -56,34 +47,41 @@
             background: #111; border: 1px solid #222; border-radius: 12px; 
             overflow: hidden; 
             transition: all 0.5s var(--ease-out);
-            transform-origin: center center; /* 确保向四周展开 */
+            transform-origin: center center;
+            display: flex; align-items: center; justify-content: center;
         }
         
+        /* 激活时的覆盖扩张效果 */
         .item.active .item-inner { 
-            /* 保持预览比例同时向四周均衡放大，覆盖更多屏幕空间 */
-            transform: scale(1.15); 
+            inset: -10% -15%; 
+            transform: scale(1.1);
             border-color: var(--accent);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.95);
+            box-shadow: 0 0 0 1px rgba(255,204,0,0.3), 0 40px 100px rgba(0,0,0,0.9);
+            border-radius: 8px;
         }
 
-        .media { width: 100%; height: 100%; pointer-events: none; background: #000; }
+        /* --- 背景虚化逻辑 --- */
+        /* 当 grid 内部有 active 元素时，让非 active 的元素变暗模糊 */
+        .grid:has(.active) .item:not(.active) {
+            opacity: 0.3;
+            filter: grayscale(0.8) blur(4px);
+            transform: scale(0.95);
+        }
+
+        .media { width: 100%; height: 100%; pointer-events: none; background: #000; display: flex; align-items: center; justify-content: center;}
         .media video, .media img { 
             width: 100%; height: 100%; 
-            object-fit: cover; /* 默认裁剪以填充 */
+            object-fit: cover; 
             display: block; 
             transition: 0.5s; 
-        }
-        /* 激活时：显示完整画面比例 */
-        .item.active .media video, .item.active .media img { 
-            object-fit: contain; 
         }
 
         .info { 
             position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            background: linear-gradient(transparent, rgba(0,0,0,0.95));
             color: #fff; font-size: 0.85rem; text-align: center;
             opacity: 0; transform: translateY(10px); transition: 0.4s;
-            box-sizing: border-box;
+            box-sizing: border-box; z-index: 2;
         }
         .item.active .info { opacity: 1; transform: translateY(0); }
 
@@ -91,16 +89,12 @@
         .acc-header span { transition: transform 0.4s; display: inline-block; }
         .accordion-item.open .acc-header span { transform: rotate(45deg); color: var(--accent); }
 
-        #portfolio-modal { 
-            position: fixed; inset: 0; background: var(--bg); z-index: 10000; 
-            transform: translateY(100%); transition: transform 0.6s var(--ease-out); 
-            overflow-y: auto; visibility: hidden; 
-        }
+        #portfolio-modal { position: fixed; inset: 0; background: var(--bg); z-index: 10000; transform: translateY(100%); transition: transform 0.6s var(--ease-out); overflow-y: auto; visibility: hidden; }
         #portfolio-modal.active { transform: translateY(0); visibility: visible; }
 
-        /* 响应式微调 */
         @media (max-width: 768px) {
-            .item.active .item-inner { transform: scale(1.05); } /* 移动端放大倍率略微缩小，防止出屏 */
+            .item.active .item-inner { inset: -5% -5%; transform: scale(1.05); } 
+            .grid:has(.active) .item:not(.active) { filter: blur(2px); opacity: 0.5; }
         }
     </style>
 </head>
@@ -128,14 +122,14 @@
         <h2 style="color:var(--accent); font-size:0.75rem; letter-spacing:4px; margin-bottom:40px;">精选作品 / FEATURED</h2>
         <div id="featured-grid" class="grid"></div>
         <div style="text-align:center; padding-top:60px;">
-            <button style="padding: 18px 40px; border: 1px solid #444; background: none; color: #fff; cursor: pointer; border-radius: 50px; font-weight: bold;" onclick="toggleModal(true)">VIEW ALL PROJECTS +</button>
+            <button style="padding: 18px 40px; border: 1px solid #444; background: none; color: #fff; cursor: pointer; border-radius: 50px; font-weight: bold; transition: 0.3s;" onclick="toggleModal(true)">VIEW ALL PROJECTS +</button>
         </div>
     </section>
 
     <div class="grid" style="margin-top:100px; padding-bottom: 150px;">
         <section id="resume">
             <span style="color:var(--accent); font-size:0.7rem; display:block; margin-bottom:20px; letter-spacing:3px;">RESUME</span>
-            <a href="#" style="color:#fff; text-decoration:none; font-size:1.5rem; font-weight:bold; border-bottom:2px solid var(--accent);">DOWNLOAD CV.</a>
+            <a href="resume.pdf" download="JLWLIMOU_Resume.pdf" style="color:#fff; text-decoration:none; font-size:1.5rem; font-weight:bold; border-bottom:2px solid var(--accent); transition: 0.3s;" onmouseover="this.style.color=var(--accent)" onmouseout="this.style.color='#fff'">DOWNLOAD CV.</a>
         </section>
         
         <section id="contact">
@@ -167,11 +161,10 @@
             siteData = await res.json();
             document.getElementById('about-text').innerText = siteData.about;
             document.getElementById('email-val').innerText = siteData.email;
-            // 确保 data.json 中有 phone 字段
-            document.getElementById('phone-val').innerText = siteData.phone || "No Phone Info"; 
+            document.getElementById('phone-val').innerText = siteData.phone || ""; 
             renderHome();
             renderAccordion();
-        } catch(e) { console.error("Load failed"); }
+        } catch(e) { console.error("Load failed."); }
     }
 
     function renderHome() {
@@ -229,14 +222,25 @@
     function handleItemClick(e, el) {
         if(e) e.stopPropagation();
         const isActive = el.classList.contains('active');
+        
+        // 如果点击的是已经激活的，则取消激活（点一下放大，再点一下缩小）
+        if(isActive) {
+            el.classList.remove('active');
+            const v = el.querySelector('video'); 
+            if(v) { v.pause(); v.currentTime = 0; }
+            return;
+        }
+
+        // 激活当前
         document.querySelectorAll('.item').forEach(i => {
             i.classList.remove('active');
-            const v = i.querySelector('video'); if(v) { v.pause(); v.currentTime = 0; }
+            const v = i.querySelector('video'); 
+            if(v) { v.pause(); v.currentTime = 0; }
         });
-        if(!isActive) {
-            el.classList.add('active');
-            const v = el.querySelector('video'); if(v) v.play();
-        }
+        
+        el.classList.add('active');
+        const v = el.querySelector('video'); 
+        if(v) { v.play().catch(() => {}); }
     }
 
     function toggleModal(show) {
