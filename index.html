@@ -8,71 +8,62 @@
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
         :root { --accent: #ffcc00; --bg: #0a0a0a; --card: #161616; --text-dim: #888; }
 
-        /* 4. 滚动条：悬停时平滑渐变显示 */
-        html { scrollbar-width: none; scroll-behavior: smooth; }
-        body::-webkit-scrollbar { width: 6px; }
-        body::-webkit-scrollbar-track { background: transparent; }
-        body::-webkit-scrollbar-thumb { 
-            background: transparent; 
+        /* --- 2. 滚动条重新设计：全场景通用 --- */
+        html { scrollbar-width: none; scroll-behavior: smooth; overflow-y: scroll; }
+        body::-webkit-scrollbar, #portfolio-modal::-webkit-scrollbar { width: 6px; }
+        body::-webkit-scrollbar-track, #portfolio-modal::-webkit-scrollbar-track { background: transparent; }
+        body::-webkit-scrollbar-thumb, #portfolio-modal::-webkit-scrollbar-thumb { 
+            background: rgba(255, 204, 0, 0); /* 默认透明 */
             border-radius: 10px; 
-            transition: background 0.5s ease; /* 渐变效果 */
+            transition: background 0.4s ease; 
         }
-        /* 仅在鼠标悬停在 body 且靠近右侧时，或滚动时显示 */
-        body:hover::-webkit-scrollbar-thumb { 
-            background: rgba(255, 204, 0, 0.2); 
-        }
-        body::-webkit-scrollbar-thumb:hover { 
-            background: var(--accent) !important; 
+        /* 鼠标靠近右侧边缘或正在滚动时显示 */
+        body.show-scroll::-webkit-scrollbar-thumb, 
+        #portfolio-modal.show-scroll::-webkit-scrollbar-thumb { 
+            background: rgba(255, 204, 0, 0.3); 
         }
 
         body { 
             background: var(--bg); color: #e0e0e0; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            margin: 0; overflow-x: hidden;
+            margin: 0; padding: 0;
         }
 
-        /* 1. 导航与边框联动样式 */
-        nav { width: 100%; position: sticky; top: 0; background: rgba(10,10,10,0.8); backdrop-filter: blur(15px); border-bottom: 1px solid #222; z-index: 1000; }
+        /* --- 1. 导航与高亮联动样式 --- */
+        nav { width: 100%; position: sticky; top: 0; background: rgba(10,10,10,0.85); backdrop-filter: blur(15px); border-bottom: 1px solid #222; z-index: 1000; }
         .nav-inner { padding: 18px 0; display: flex; justify-content: space-between; align-items: center; width: 92%; max-width: 1400px; margin: 0 auto; }
         .logo { color: var(--accent); font-weight: 800; font-size: 1.2rem; letter-spacing: 3px; cursor: pointer; }
         .nav-links { display: flex; gap: 30px; }
-        .nav-links a { 
-            color: var(--text-dim); text-decoration: none; font-size: 0.85rem; 
-            cursor: pointer; transition: 0.3s; position: relative; padding: 5px 0;
-        }
+        .nav-links a { color: var(--text-dim); text-decoration: none; font-size: 0.85rem; cursor: pointer; transition: 0.3s; position: relative; padding: 5px 0; }
         .nav-links a.active { color: var(--accent); }
-        .nav-links a.active::after {
-            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px;
-            background: var(--accent); box-shadow: 0 0 10px var(--accent);
-        }
+        .nav-links a.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
 
-        /* 边框高亮：联动右上角访问 */
-        .footer-card { transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); border: 1px solid #222; }
+        /* 内容边框高亮 */
+        .footer-card { transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); border: 1px solid #222; position: relative; }
         .footer-card.highlight-border { 
             border-color: var(--accent) !important; 
-            box-shadow: 0 0 25px rgba(255, 204, 0, 0.2); 
-            transform: translateY(-5px);
+            box-shadow: 0 0 30px rgba(255, 204, 0, 0.15); 
+            transform: translateY(-8px);
         }
 
-        /* 布局与微放大 */
+        /* 布局与悬停放大 */
         .container { width: 92%; max-width: 1400px; margin: 0 auto; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 40px; }
-        
         .item { position: relative; height: 320px; cursor: pointer; }
         .item-inner {
             position: absolute; width: 100%; background: #111; border: 1px solid #222; 
             border-radius: 12px; overflow: hidden; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             z-index: 1;
         }
-        /* 2. 悬停略微放大 */
-        .item:hover .item-inner { transform: scale(1.02); border-color: #444; }
+        /* 悬停略微放大效果 */
+        .item:hover .item-inner { transform: scale(1.03); border-color: #555; z-index: 2; }
 
-        /* 3. 点击激活后的强制放大状态 */
+        /* 点击激活后的强制放大状态 */
         .item.active { z-index: 100; }
         .item.active .item-inner { 
-            transform: scale(1.06) translateY(-10px) !important; 
+            transform: scale(1.08) translateY(-15px) !important; 
             border-color: var(--accent) !important; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8); 
+            box-shadow: 0 25px 60px rgba(0,0,0,0.9); 
         }
         .item.active .media { height: 400px; }
 
@@ -80,41 +71,36 @@
         .media video, .media img { width: 100%; height: 100%; object-fit: contain; }
         .info { padding: 15px; font-size: 0.85rem; color: #666; text-align: center; }
 
+        /* --- 4. 分类展开动画 --- */
+        .accordion-item { border-bottom: 1px solid #222; }
+        .accordion-header { padding: 25px 0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .accordion-content { 
+            max-height: 0; overflow: hidden; 
+            transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .accordion-item.open .accordion-content { max-height: 2000px; padding-bottom: 50px; }
+        .accordion-item.open .exp-icon { transform: rotate(45deg); color: var(--accent); }
+        .exp-icon { transition: 0.3s; font-size: 1.2rem; }
+
         /* 弹窗样式 */
         #portfolio-modal { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg); z-index: 2000; transform: translateY(100%);
-            transition: transform 0.6s cubic-bezier(0.32, 1, 0.23, 1); overflow-y: scroll;
+            transition: transform 0.5s cubic-bezier(0.32, 1, 0.23, 1);
         }
         #portfolio-modal.active { display: block; transform: translateY(0); }
 
-        /* 下拉刷新 */
-        #pull-to-refresh {
-            position: fixed; top: -75px; left: 0; width: 100%; height: 70px;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 5000; pointer-events: none; transition: top 0.3s ease;
-        }
-        .spinner { width: 28px; height: 28px; border: 2px solid rgba(255,204,0,0.1); border-top: 2px solid var(--accent); border-radius: 50%; }
-        .spinning { animation: spin 0.8s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        .dl-btn { display: inline-block; padding: 12px 28px; border: 1px solid #444; color: #888; border-radius: 4px; font-weight: bold; cursor: pointer; background: transparent; transition: 0.3s; font-size: 0.8rem; }
-        .dl-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-        .accordion-header { padding: 25px 0; cursor: pointer; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        .accordion-content { display: none; padding: 30px 0; }
-        .accordion-item.open .accordion-content { display: block; }
         .section-title { color: var(--accent); border-left: 2px solid var(--accent); padding-left: 15px; margin: 120px 0 40px; text-transform: uppercase; letter-spacing: 4px; font-size: 0.75rem; font-weight: 600; }
+        .dl-btn { display: inline-block; padding: 12px 28px; border: 1px solid #444; color: #888; border-radius: 4px; font-weight: bold; cursor: pointer; background: transparent; transition: 0.3s; font-size: 0.8rem; text-decoration: none; }
+        .dl-btn:hover { border-color: var(--accent); color: var(--accent); }
     </style>
 </head>
 <body>
 
-<div id="pull-to-refresh"><div class="spinner" id="refresh-spinner"></div></div>
-
 <div id="page-wrapper">
     <nav>
         <div class="nav-inner">
-            <div class="logo" onclick="manualTriggerRefresh()">JLWLIMOU</div>
+            <div class="logo" onclick="window.scrollTo({top:0, behavior:'smooth'})">JLWLIMOU</div>
             <div class="nav-links" id="smart-nav">
                 <a data-sec="hero" onclick="scrollToId('hero')">简介</a>
                 <a data-sec="featured" onclick="scrollToId('featured')">作品</a>
@@ -142,7 +128,7 @@
         <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px; padding-bottom: 150px;">
             <section id="resume" class="footer-card" style="padding:40px; border-radius:12px;">
                 <span style="color:var(--accent); font-size:0.7rem; display:block; margin-bottom:15px; letter-spacing:2px;">RESUME</span>
-                <button class="dl-btn" id="resume-dl-btn">DOWNLOAD PDF</button>
+                <a href="#" class="dl-btn">DOWNLOAD PDF</a>
             </section>
             <section id="contact" class="footer-card" style="padding:40px; border-radius:12px;">
                 <span style="color:var(--accent); font-size:0.7rem; display:block; margin-bottom:15px; letter-spacing:2px;">CONTACT</span>
@@ -154,7 +140,7 @@
 </div>
 
 <div id="portfolio-modal">
-    <div class="modal-header" style="position: sticky; top:0; z-index:110; background: rgba(10,10,10,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid #222;">
+    <div class="modal-header" style="position: sticky; top:0; z-index:110; background: rgba(10,10,10,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #222;">
         <div class="nav-inner">
             <h2 style="margin:0; font-size:1rem; color:var(--accent); letter-spacing:2px;">FULL PROJECTS</h2>
             <button onclick="toggleModal(false)" style="background:var(--accent); border:none; padding:8px 20px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:0.75rem;">CLOSE</button>
@@ -165,87 +151,93 @@
 
 <script>
     let siteData = null;
-    const wrapper = document.getElementById('page-wrapper');
-    const spinner = document.getElementById('refresh-spinner');
-    const pullEl = document.getElementById('pull-to-refresh');
 
-    // --- 1. 高亮联动逻辑 ---
-    function initScrollSpy() {
-        const sections = document.querySelectorAll('section, header');
+    // --- 1. & 2. 联动高亮与滚动条逻辑 ---
+    function handleScrollEffects() {
+        const scrollY = window.scrollY;
+        const winH = window.innerHeight;
+        
+        // 滚动条渐变显示逻辑
+        window.addEventListener('mousemove', (e) => {
+            const isNearRight = (window.innerWidth - e.clientX) < 40;
+            document.body.classList.toggle('show-scroll', isNearRight);
+            document.getElementById('portfolio-modal').classList.toggle('show-scroll', isNearRight);
+        });
+
+        // 高亮联动：简历与联系
+        const sections = ['hero', 'featured', 'resume', 'contact'];
         const navLinks = document.querySelectorAll('#smart-nav a');
-        const cards = { 'resume': document.getElementById('resume'), 'contact': document.getElementById('contact') };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const id = entry.target.id;
-                    // 更新右上角导航高亮
-                    navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('data-sec') === id));
-                    // 更新页面内边框高亮
-                    Object.values(cards).forEach(c => c?.classList.remove('highlight-border'));
-                    if (cards[id]) cards[id].classList.add('highlight-border');
+        
+        sections.forEach(id => {
+            const el = document.getElementById(id);
+            if(!el) return;
+            const rect = el.getBoundingClientRect();
+            const isActive = rect.top < winH*0.4 && rect.bottom > winH*0.4;
+            
+            // 右上角高亮
+            if(isActive) {
+                navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('data-sec') === id));
+                // 页面内边框高亮
+                if(id === 'resume' || id === 'contact') {
+                    document.getElementById(id).classList.add('highlight-border');
+                } else {
+                    document.getElementById('resume').classList.remove('highlight-border');
+                    document.getElementById('contact').classList.remove('highlight-border');
                 }
-            });
-        }, { rootMargin: '-40% 0px -40% 0px', threshold: 0 });
-
-        sections.forEach(s => observer.observe(s));
+            }
+        });
     }
+
+    window.addEventListener('scroll', handleScrollEffects);
 
     function scrollToId(id) {
         const el = document.getElementById(id);
         if (el) window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
     }
 
-    // --- 3. 作品点击放大核心逻辑 ---
+    // --- 3. 作品放大逻辑（解决卡顿） ---
     function handleItemClick(e, el, forceExpand = false) {
         if(e) e.stopPropagation();
-        
         const wasActive = el.classList.contains('active');
         
-        // 如果不是强制模式且已经是放大状态，则收起
-        if (wasActive && !forceExpand) {
-            el.classList.remove('active');
-            const v = el.querySelector('video'); if(v) v.pause();
-            return;
-        }
-
-        // 否则：清除其他所有放大状态，放大当前这一个
+        // 清除其他
         document.querySelectorAll('.item.active').forEach(item => {
             item.classList.remove('active');
             const v = item.querySelector('video'); if(v) v.pause();
         });
 
-        el.classList.add('active');
-        const v = el.querySelector('video'); if(v) { v.currentTime = 0; v.play(); }
+        if (!wasActive || forceExpand) {
+            el.classList.add('active');
+            const v = el.querySelector('video'); if(v) { v.currentTime = 0; v.play(); }
+        }
     }
 
-    // --- 弹窗逻辑 ---
+    // 弹窗逻辑
     function toggleModal(show, targetId = null) {
         const m = document.getElementById('portfolio-modal');
         if (show) {
             m.style.display = 'block';
             document.body.style.overflow = 'hidden';
-            setTimeout(() => {
+            requestAnimationFrame(() => {
                 m.classList.add('active');
                 if (targetId) {
-                    const targetItem = document.querySelector(`[data-id="${targetId}"]`);
-                    if (targetItem) {
-                        // 展开分类
-                        targetItem.closest('.accordion-item').classList.add('open');
-                        // 强制放大
-                        setTimeout(() => {
+                    setTimeout(() => {
+                        const targetItem = document.querySelector(`[data-id="${targetId}"]`);
+                        if (targetItem) {
+                            targetItem.closest('.accordion-item').classList.add('open');
                             targetItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            handleItemClick(null, targetItem, true); 
-                        }, 500);
-                    }
+                            handleItemClick(null, targetItem, true);
+                        }
+                    }, 600);
                 }
-            }, 50);
+            });
         } else {
             m.classList.remove('active');
-            setTimeout(() => { m.style.display = 'none'; document.body.style.overflow = ''; }, 600);
+            setTimeout(() => { m.style.display = 'none'; document.body.style.overflow = ''; }, 500);
         }
     }
 
+    // 数据加载与渲染
     async function loadData() {
         try {
             const res = await fetch('data.json?t=' + Date.now());
@@ -255,9 +247,8 @@
             document.getElementById('phone-val').innerText = siteData.phone;
             renderHome();
             renderAccordion();
-            initScrollSpy();
             document.getElementById('home-content').style.opacity = '1';
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error("Data Load Error:", e); }
     }
 
     function renderHome() {
@@ -265,13 +256,13 @@
         let html = '';
         siteData.categories.forEach((cat, cIdx) => {
             cat.items.forEach((item, iIdx) => {
-                const uid = `item-${cIdx}-${iIdx}`;
                 if (item.featured) {
+                    const uid = `item-${cIdx}-${iIdx}`;
                     html += `
                     <div class="item" onclick="toggleModal(true, '${uid}')">
                         <div class="item-inner">
                             <div class="media">
-                                ${item.type === 'video' ? `<video src="${item.url}" loop muted playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>` : `<img src="${item.url}">`}
+                                ${item.type === 'video' ? `<video src="${item.url}" loop muted playsinline></video>` : `<img src="${item.url}">`}
                             </div>
                             <div class="info">${item.title}</div>
                         </div>
@@ -288,7 +279,7 @@
             <div class="accordion-item">
                 <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
                     <h3 style="margin:0; letter-spacing:2px; font-size:1.1rem;">${cat.name}</h3>
-                    <span style="font-size:0.7rem; color:var(--accent)">EXPLORE</span>
+                    <span class="exp-icon">+</span>
                 </div>
                 <div class="accordion-content">
                     <div class="grid">
@@ -308,29 +299,7 @@
         `).join('');
     }
 
-    window.addEventListener('load', () => {
-        if (sessionStorage.getItem('isRefreshing')) {
-            sessionStorage.removeItem('isRefreshing');
-            window.scrollTo(0, 0);
-            setTimeout(triggerRefreshAnimation, 50);
-        } else {
-            loadData();
-        }
-    });
-
-    async function triggerRefreshAnimation() {
-        wrapper.style.transform = `translateY(80px)`;
-        pullEl.style.top = '20px';
-        spinner.classList.add('spinning');
-        await loadData();
-        setTimeout(() => {
-            wrapper.style.transform = '';
-            pullEl.style.top = '-75px';
-            setTimeout(() => spinner.classList.remove('spinning'), 400);
-        }, 800);
-    }
-
-    function manualTriggerRefresh() { window.scrollTo({top:0, behavior:'smooth'}); setTimeout(triggerRefreshAnimation, 400); }
+    window.addEventListener('load', loadData);
 </script>
 </body>
 </html>
