@@ -2,99 +2,99 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>JLWLIMOU - 私人后台管理</title>
+    <title>JLWLIMOU - 高级后台管理</title>
     <style>
-        body { background: #0f0f0f; color: #e0e0e0; font-family: sans-serif; padding: 40px; display: flex; justify-content: center; }
-        .editor-box { width: 100%; max-width: 500px; background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h2 { color: #ffcc00; margin-top: 0; letter-spacing: 1px; }
-        label { display: block; margin-top: 20px; color: #888; font-size: 0.85rem; text-transform: uppercase; }
-        input, textarea { width: 100%; padding: 12px; margin-top: 8px; background: #0a0a0a; border: 1px solid #333; color: #fff; border-radius: 6px; box-sizing: border-box; outline: none; transition: 0.3s; }
-        input:focus, textarea:focus { border-color: #ffcc00; }
-        button { background: #ffcc00; color: #000; border: none; padding: 15px; margin-top: 30px; cursor: pointer; font-weight: bold; width: 100%; border-radius: 6px; font-size: 1rem; }
-        button:hover { background: #ffd633; transform: translateY(-2px); }
-        #status { margin-top: 20px; padding: 10px; border-radius: 4px; font-size: 0.9rem; display: none; }
-        .success { background: rgba(0, 255, 0, 0.1); color: #00ff00; display: block !important; }
-        .error { background: rgba(255, 0, 0, 0.1); color: #ff4444; display: block !important; }
+        body { background: #0f0f0f; color: #e0e0e0; font-family: sans-serif; padding: 20px; display: flex; justify-content: center; }
+        .editor-box { width: 100%; max-width: 600px; background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333; }
+        h2 { color: #ffcc00; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        label { display: block; margin-top: 20px; color: #888; font-size: 0.85rem; font-weight: bold; }
+        input, textarea { width: 100%; padding: 12px; margin-top: 8px; background: #0a0a0a; border: 1px solid #333; color: #fff; border-radius: 6px; box-sizing: border-box; }
+        .file-group { background: #222; padding: 15px; border-radius: 6px; margin-top: 10px; border: 1px dashed #444; }
+        button { background: #ffcc00; color: #000; border: none; padding: 15px; margin-top: 30px; cursor: pointer; font-weight: bold; width: 100%; border-radius: 6px; }
+        button:hover { background: #ffd633; }
+        #status { margin-top: 20px; padding: 10px; border-radius: 4px; display: none; }
     </style>
 </head>
 <body>
     <div class="editor-box">
-        <h2>站点内容编辑器</h2>
+        <h2>站点内容与媒体管理</h2>
         
-        <label>GitHub 访问密钥 (Token)</label>
-        <input type="password" id="token" placeholder="粘贴你的 ghp_ 开头的密钥">
+        <label>GitHub Token</label>
+        <input type="password" id="token" placeholder="粘贴你的 ghp_ 密钥">
 
-        <label>QQ 邮箱</label>
-        <input type="text" id="email" placeholder="例如：123456789@qq.com">
+        <label>基本信息更新 (邮箱/电话/简介)</label>
+        <textarea id="about" rows="3" placeholder="更新主页文字内容..."></textarea>
 
-        <label>电话号码</label>
-        <input type="text" id="phone" placeholder="例如：+86 138-0000-0000">
+        <div class="file-group">
+            <label style="margin-top:0">更新简历 (仅限 PDF)</label>
+            <input type="file" id="resumeFile" accept=".pdf">
+        </div>
 
-        <label>自我介绍/简历更新</label>
-        <textarea id="about" rows="4" placeholder="写下你最新的学习动态..."></textarea>
+        <div class="file-group">
+            <label style="margin-top:0">上传新作品 (MP4 视频 / JPG 图片)</label>
+            <input type="file" id="workFile" accept=".mp4,.jpg,.png,.gif">
+            <p style="font-size:0.7rem; color:#666; margin-top:5px;">注：大视频上传较慢，请耐心等待。</p>
+        </div>
 
-        <button onclick="updateWebsite()">发布更新到主站</button>
+        <button onclick="runAdvancedUpdate()">一键同步所有修改</button>
         <div id="status"></div>
     </div>
 
     <script>
-        async function updateWebsite() {
-            const token = document.getElementById('token').value;
-            const email = document.getElementById('email').value;
-            const phone = document.getElementById('phone').value;
-            const about = document.getElementById('about').value;
-            const statusDiv = document.getElementById('status');
+        // 辅助函数：将文件转换为 Base64
+        const toBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = error => reject(error);
+        });
 
-            // --- 请确保这里的信息正确 ---
-            const OWNER = 'JLWLIMOU'; 
+        async function uploadToGithub(token, fileName, base64Content, message) {
+            const OWNER = 'JLWLIMOU';
             const REPO = 'jlwlimou.github.io';
-            const FILE_PATH = 'index.html';
-            // -----------------------
+            const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${fileName}`;
+            
+            // 先尝试获取文件 SHA（如果文件已存在）
+            const res = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
+            const data = await res.json();
+            const sha = data.sha;
 
-            if (!token) { alert('请输入 Token！'); return; }
+            return fetch(url, {
+                method: 'PUT',
+                headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message, content: base64Content, sha })
+            });
+        }
 
-            statusDiv.className = '';
-            statusDiv.innerText = '正在联系 GitHub 服务器...';
+        async function runAdvancedUpdate() {
+            const token = document.getElementById('token').value;
+            const statusDiv = document.getElementById('status');
+            if (!token) { alert('请输入 Token'); return; }
+
             statusDiv.style.display = 'block';
+            statusDiv.innerText = '正在处理文件并上传...';
 
             try {
-                // 1. 获取当前文件的内容和 SHA（GitHub 修改文件需要这个“指纹”）
-                const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
-                const res = await fetch(getUrl, {
-                    headers: { 'Authorization': `token ${token}` }
-                });
-                const fileData = await res.json();
-                let content = decodeURIComponent(escape(atob(fileData.content)));
-
-                // 2. 使用正则表达式替换旧内容（找到对应的位置并换掉）
-                if (email) content = content.replace(/<span class="contact-value">.*?@qq\.com<\/span>/, `<span class="contact-value">${email}</span>`);
-                if (phone) content = content.replace(/<span class="contact-value">\+86.*?<\/span>/, `<span class="contact-value">${phone}</span>`);
-                if (about) content = content.replace(/<p>我是 JLWLIMOU。.*?<\/p>/, `<p>我是 JLWLIMOU。${about}</p>`);
-
-                // 3. 将新内容发回 GitHub
-                const updatedContent = btoa(unescape(encodeURIComponent(content)));
-                const putRes = await fetch(getUrl, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: '通过私人后台更新站点内容',
-                        content: updatedContent,
-                        sha: fileData.sha
-                    })
-                });
-
-                if (putRes.ok) {
-                    statusDiv.className = 'success';
-                    statusDiv.innerText = '✅ 更新成功！1分钟后刷新主站即可看到变化。';
-                } else {
-                    throw new Error('提交失败');
+                // 1. 处理简历 PDF
+                const resumeFile = document.getElementById('resumeFile').files[0];
+                if (resumeFile) {
+                    const b64 = await toBase64(resumeFile);
+                    await uploadToGithub(token, 'resume.pdf', b64, 'Update Resume PDF');
                 }
+
+                // 2. 处理作品文件
+                const workFile = document.getElementById('workFile').files[0];
+                if (workFile) {
+                    const b64 = await toBase64(workFile);
+                    // 我们统一命名为 work_latest.mp4 或保持原名
+                    await uploadToGithub(token, workFile.name, b64, `Upload Work: ${workFile.name}`);
+                }
+
+                statusDiv.innerText = '✅ 所有更改已提交！请等待 1-2 分钟查看效果。';
+                statusDiv.style.color = '#00ff00';
             } catch (err) {
-                statusDiv.className = 'error';
-                statusDiv.innerText = '❌ 更新失败：请检查 Token 是否正确或权限是否开启。';
+                statusDiv.innerText = '❌ 发生错误，请检查 Token 权限或文件大小。';
+                statusDiv.style.color = '#ff4444';
             }
         }
     </script>
