@@ -2,118 +2,101 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JLWLIMOU | 3D Animator Portfolio</title>
+    <title>JLWLIMOU - 私人后台管理</title>
     <style>
-        /* 基础美学设置 */
-        body { background-color: #0f0f0f; color: #e0e0e0; font-family: 'Inter', -apple-system, sans-serif; margin: 0; line-height: 1.6; scroll-behavior: smooth; }
-        .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
-        
-        /* 导航栏 */
-        nav { padding: 40px 0; display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-weight: bold; font-size: 1.2rem; letter-spacing: 2px; }
-        .nav-links a { color: #888; text-decoration: none; margin-left: 30px; transition: 0.3s; }
-        .nav-links a:hover { color: #ffcc00; }
-
-        /* 核心介绍区 */
-        .hero { padding: 100px 0; border-bottom: 1px solid #222; }
-        .hero h1 { font-size: 3.5rem; margin: 0; color: #fff; }
-        .hero p { font-size: 1.2rem; color: #888; max-width: 600px; }
-
-        /* 通用板块标题 */
-        .section-title { margin-top: 80px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 3px; color: #ffcc00; }
-
-        /* 作品集板块 */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; margin: 40px 0; }
-        .card { background: #1a1a1a; aspect-ratio: 16/9; border: 1px solid #222; display: flex; align-items: center; justify-content: center; transition: 0.4s; position: relative; overflow: hidden; }
-        .card:hover { border-color: #ffcc00; transform: translateY(-5px); }
-
-        /* 简历区样式 */
-        .resume-content { background: #151515; border: 1px solid #222; padding: 40px; margin-top: 40px; border-radius: 4px; }
-        .resume-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
-        .resume-item { margin-bottom: 30px; }
-        .resume-item h3 { color: #fff; margin-bottom: 10px; font-size: 1.1rem; }
-        .resume-item p { color: #aaa; margin: 5px 0; }
-        
-        /* 下载按钮 */
-        .download-btn { display: inline-block; padding: 12px 25px; background: transparent; border: 1px solid #ffcc00; color: #ffcc00; text-decoration: none; border-radius: 4px; transition: 0.3s; font-size: 0.9rem; }
-        .download-btn:hover { background: #ffcc00; color: #000; }
-
-        /* 联系信息 */
-        .contact-box { background: #151515; border: 1px solid #222; padding: 40px; margin: 40px 0; border-radius: 4px; }
-        .contact-item { margin: 15px 0; font-size: 1.1rem; }
-        .contact-label { color: #ffcc00; margin-right: 15px; font-weight: bold; }
-        .contact-value { color: #fff; font-family: monospace; }
-
-        footer { padding: 80px 0; color: #444; font-size: 0.9rem; border-top: 1px solid #222; }
+        body { background: #0f0f0f; color: #e0e0e0; font-family: sans-serif; padding: 40px; display: flex; justify-content: center; }
+        .editor-box { width: 100%; max-width: 500px; background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: #ffcc00; margin-top: 0; letter-spacing: 1px; }
+        label { display: block; margin-top: 20px; color: #888; font-size: 0.85rem; text-transform: uppercase; }
+        input, textarea { width: 100%; padding: 12px; margin-top: 8px; background: #0a0a0a; border: 1px solid #333; color: #fff; border-radius: 6px; box-sizing: border-box; outline: none; transition: 0.3s; }
+        input:focus, textarea:focus { border-color: #ffcc00; }
+        button { background: #ffcc00; color: #000; border: none; padding: 15px; margin-top: 30px; cursor: pointer; font-weight: bold; width: 100%; border-radius: 6px; font-size: 1rem; }
+        button:hover { background: #ffd633; transform: translateY(-2px); }
+        #status { margin-top: 20px; padding: 10px; border-radius: 4px; font-size: 0.9rem; display: none; }
+        .success { background: rgba(0, 255, 0, 0.1); color: #00ff00; display: block !important; }
+        .error { background: rgba(255, 0, 0, 0.1); color: #ff4444; display: block !important; }
     </style>
 </head>
 <body>
+    <div class="editor-box">
+        <h2>站点内容编辑器</h2>
+        
+        <label>GitHub 访问密钥 (Token)</label>
+        <input type="password" id="token" placeholder="粘贴你的 ghp_ 开头的密钥">
 
-<div class="container">
-    <nav>
-        <div class="logo">JLWLIMOU</div>
-        <div class="nav-links">
-            <a href="#work">作品集</a>
-            <a href="#resume">简历</a>
-            <a href="#contact">联系我</a>
-        </div>
-    </nav>
+        <label>QQ 邮箱</label>
+        <input type="text" id="email" placeholder="例如：123456789@qq.com">
 
-    <header class="hero">
-        <h1>Focus on Maya Animation.</h1>
-        <p>我是 JLWLIMOU。致力于三维动画的运动规律学习与 Maya 技术探索。</p>
-    </header>
+        <label>电话号码</label>
+        <input type="text" id="phone" placeholder="例如：+86 138-0000-0000">
 
-    <h2 id="work" class="section-title">个人练习 / WORKS</h2>
-    <div class="grid">
-        <div class="card"><span>Project 01 (Coming Soon)</span></div>
-        <div class="card"><span>Project 02 (Coming Soon)</span></div>
+        <label>自我介绍/简历更新</label>
+        <textarea id="about" rows="4" placeholder="写下你最新的学习动态..."></textarea>
+
+        <button onclick="updateWebsite()">发布更新到主站</button>
+        <div id="status"></div>
     </div>
 
-    <h2 id="resume" class="section-title">个人简历 / RESUME</h2>
-    <div class="resume-content">
-        <div class="resume-header">
-            <div>
-                <h2 style="color: #fff; margin: 0;">JLWLIMOU</h2>
-                <p>三维动画师 | 202X 届毕业生</p>
-            </div>
-            <a href="resume.pdf" class="download-btn" target="_blank">下载 PDF 简历</a>
-        </div>
+    <script>
+        async function updateWebsite() {
+            const token = document.getElementById('token').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const about = document.getElementById('about').value;
+            const statusDiv = document.getElementById('status');
 
-        <div class="resume-item">
-            <h3>教育经历 / EDUCATION</h3>
-            <p><strong>某某艺术院校</strong> · 三维动画专业 · 本科 (2022 - 2026)</p>
-            <p>相关课程：动画运动规律、Maya 建模与渲染、角色绑定基础</p>
-        </div>
+            // --- 请确保这里的信息正确 ---
+            const OWNER = 'JLWLIMOU'; 
+            const REPO = 'jlwlimou.github.io';
+            const FILE_PATH = 'index.html';
+            // -----------------------
 
-        <div class="resume-item">
-            <h3>专业技能 / SKILLS</h3>
-            <p><strong>软件:</strong> Autodesk Maya (核心), Adobe Premiere, Photoshop</p>
-            <p><strong>技术:</strong> 关键帧动画、基础骨骼绑定、三维空间感知</p>
-        </div>
+            if (!token) { alert('请输入 Token！'); return; }
 
-        <div class="resume-item">
-            <h3>自我评价 / ABOUT ME</h3>
-            <p>热爱动画艺术，专注于赋予数字生命以真实的运动质感。目前正在深入学习经典的动画十二法则，并努力通过 Maya 将创意变为现实。</p>
-        </div>
-    </div>
-    <h2 id="contact" class="section-title">联系方式 / CONTACT</h2>
-    <div class="contact-box">
-        <div class="contact-item">
-            <span class="contact-label">QQ 邮箱:</span>
-            <span class="contact-value">123456789@qq.com</span>
-        </div>
-        <div class="contact-item">
-            <span class="contact-label">电话号码:</span>
-            <span class="contact-value">+86 138-0000-0000</span>
-        </div>
-    </div>
+            statusDiv.className = '';
+            statusDiv.innerText = '正在联系 GitHub 服务器...';
+            statusDiv.style.display = 'block';
 
-    <footer>
-        <p>&copy; 2024 JLWLIMOU. Built with GitHub Pages.</p>
-    </footer>
-</div>
+            try {
+                // 1. 获取当前文件的内容和 SHA（GitHub 修改文件需要这个“指纹”）
+                const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
+                const res = await fetch(getUrl, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+                const fileData = await res.json();
+                let content = decodeURIComponent(escape(atob(fileData.content)));
 
+                // 2. 使用正则表达式替换旧内容（找到对应的位置并换掉）
+                if (email) content = content.replace(/<span class="contact-value">.*?@qq\.com<\/span>/, `<span class="contact-value">${email}</span>`);
+                if (phone) content = content.replace(/<span class="contact-value">\+86.*?<\/span>/, `<span class="contact-value">${phone}</span>`);
+                if (about) content = content.replace(/<p>我是 JLWLIMOU。.*?<\/p>/, `<p>我是 JLWLIMOU。${about}</p>`);
+
+                // 3. 将新内容发回 GitHub
+                const updatedContent = btoa(unescape(encodeURIComponent(content)));
+                const putRes = await fetch(getUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: '通过私人后台更新站点内容',
+                        content: updatedContent,
+                        sha: fileData.sha
+                    })
+                });
+
+                if (putRes.ok) {
+                    statusDiv.className = 'success';
+                    statusDiv.innerText = '✅ 更新成功！1分钟后刷新主站即可看到变化。';
+                } else {
+                    throw new Error('提交失败');
+                }
+            } catch (err) {
+                statusDiv.className = 'error';
+                statusDiv.innerText = '❌ 更新失败：请检查 Token 是否正确或权限是否开启。';
+            }
+        }
+    </script>
 </body>
 </html>
