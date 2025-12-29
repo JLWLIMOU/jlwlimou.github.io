@@ -12,23 +12,17 @@
         .tab-btn.active { color: var(--accent); background: var(--card); border-bottom: 2px solid var(--accent); }
         .tab-content { display: none; padding: 30px; }
         .tab-content.active { display: block; }
-        
         .group { background: #1a1a1a; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #252525; }
         label { display: block; color: var(--accent); font-size: 0.75rem; margin-bottom: 10px; }
         input, textarea { width: 100%; padding: 12px; background: #000; border: 1px solid #333; color: #fff; border-radius: 6px; box-sizing: border-box; }
-        
-        .cat-card { border: 1px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 15px; position: relative; }
+        .cat-card { border: 1px solid #333; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
         .item-row { display: flex; align-items: center; gap: 10px; background: #0c0c0c; padding: 10px; margin-top: 10px; border-radius: 4px; border: 1px solid #222; }
-        
-        /* 状态指示器 */
         .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
         .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
         .btn-main { background: var(--accent); color: #000; border: none; padding: 18px; width: 100%; cursor: pointer; font-weight: bold; border-radius: 8px; font-size: 1rem; transition: 0.3s; }
         .btn-main:disabled { background: #444; cursor: not-allowed; }
-        .upload-area { margin-top: 10px; width: 100%; border: 1px dashed #444; background: none; color: #888; padding: 12px; cursor: pointer; transition: 0.3s; border-radius: 6px; }
-        .upload-area:hover { border-color: var(--accent); color: var(--accent); background: rgba(255,204,0,0.05); }
+        .upload-area { margin-top: 10px; width: 100%; border: 1px dashed #444; background: none; color: #888; padding: 12px; cursor: pointer; border-radius: 6px; }
     </style>
 </head>
 <body>
@@ -39,15 +33,24 @@
 </div>
 
 <div class="box">
-    <div class="tabs"><button class="tab-btn" onclick="switchTab(event, 'tab-featured')">首页精选配置</button>
+    <div class="tabs">
         <button class="tab-btn active" onclick="switchTab(event, 'tab-works')">作品集管理</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-featured')">首页精选配置</button>
         <button class="tab-btn" onclick="switchTab(event, 'tab-info')">基本信息</button>
         <button class="tab-btn" onclick="switchTab(event, 'tab-about')">简介编辑</button>
     </div>
 
     <div id="tab-works" class="tab-content active">
-        <button onclick="addCat()" style="margin-bottom:15px; padding:8px 15px; background:#444; color:#fff; border:none; cursor:pointer; border-radius:4px;">+ 新增分类</button>
+        <button onclick="addCat()" style="margin-bottom:15px; padding:8px 15px; background:#444; color:#fff; border:none; cursor:pointer; border-radius:4px;">+ 新增分类板块</button>
         <div id="root"></div>
+    </div>
+
+    <div id="tab-featured" class="tab-content">
+        <div class="group">
+            <label>首页展示作品池</label>
+            <p style="font-size: 0.8rem; color: #666; margin-bottom: 15px;">在此勾选你想放在首页“精选栏目”的作品：</p>
+            <div id="featured-master-list"></div>
+        </div>
     </div>
 
     <div id="tab-info" class="tab-content">
@@ -63,18 +66,12 @@
         <div id="status" style="text-align: center; margin-bottom: 10px; color: var(--accent); font-size: 0.85rem; min-height: 1.2em;"></div>
         <button id="save-btn" class="btn-main" onclick="save()">保存并同步至 GitHub</button>
     </div>
-</div><div id="tab-featured" class="tab-content">
-    <div class="group">
-        <label>精选作品池</label>
-        <p style="font-size: 0.8rem; color: #666; margin-bottom: 15px;">勾选后该作品将出现在首页。支持跨分类选择。</p>
-        <div id="featured-master-list"></div>
-    </div>
 </div>
 
 <script>
     const CONFIG = {
         OWNER: "JLWLIMOU", REPO: "jlwlimou.github.io",
-        T1: "Z2hwXzlIMFBEcFoxT2hkQUM2dnQwSGJlYT", T2: "FhcXlHaGJ2RTJFbU1pYQ==" // <-- 填入 Token
+        T1: "Z2hwXzlIMFBEcFoxT2hkQUM2dnQwSGJlYT", T2: "FhcXlHaGJ2RTJFbU1pYQ=="
     };
 
     let localData = null;
@@ -91,43 +88,62 @@
             toggleLoader(false);
         } catch(e) { 
             toggleLoader(false);
-            msg("数据加载失败，请检查 data.json");
+            msg("数据加载失败");
         }
     }
 
-   // 约第 90 行修改
-function render() {
-    const root = document.getElementById('root');
-    const featRoot = document.getElementById('featured-master-list'); // 新增
-    root.innerHTML = '';
-    featRoot.innerHTML = ''; // 新增
+    // 核心渲染函数：修复了丢失的列表和按钮逻辑
+    function render() {
+        const root = document.getElementById('root');
+        const featRoot = document.getElementById('featured-master-list');
+        root.innerHTML = '';
+        featRoot.innerHTML = '';
 
-    localData.categories.forEach((cat, cIdx) => {
-        // 原有的分类管理渲染逻辑...
-        // 在该循环中加入以下代码渲染精选页
-        cat.items.forEach((item, iIdx) => {
-            const fRow = document.createElement('div');
-            fRow.className = 'item-row';
-            fRow.innerHTML = `
-                <input type="checkbox" ${item.featured ? 'checked' : ''} onchange="localData.categories[${cIdx}].items[${iIdx}].featured=this.checked">
-                <span style="color:var(--accent); font-size:0.75rem; width:100px;">[${cat.name}]</span>
-                <span style="flex:1">${item.title}</span>
+        localData.categories.forEach((cat, cIdx) => {
+            // A. 渲染作品管理列表
+            const card = document.createElement('div');
+            card.className = 'cat-card';
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <input type="text" value="${cat.name}" onchange="localData.categories[${cIdx}].name=this.value" style="width:70%; font-weight:bold; color:var(--accent)">
+                    <button onclick="localData.categories.splice(${cIdx},1);render()" style="background:#cc3333; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">删除分类</button>
+                </div>
+                <div id="items-${cIdx}"></div>
+                <button class="upload-area" onclick="document.getElementById('file-${cIdx}').click()">+ 上传文件到该分类</button>
+                <input type="file" id="file-${cIdx}" style="display:none" onchange="handleUpload(${cIdx}, this)">
             `;
-            featRoot.appendChild(fRow);
+            root.appendChild(card);
+
+            const itemsContainer = document.getElementById(`items-${cIdx}`);
+            cat.items.forEach((item, iIdx) => {
+                // 1. 列表管理行
+                const iRow = document.createElement('div');
+                iRow.className = 'item-row';
+                iRow.innerHTML = `
+                    <input type="checkbox" ${item.featured ? 'checked' : ''} onchange="localData.categories[${cIdx}].items[${iIdx}].featured=this.checked; render()">
+                    <span style="font-size:0.7rem; color:#555; flex:1; overflow:hidden;">${item.url}</span>
+                    <input type="text" value="${item.title}" onchange="localData.categories[${cIdx}].items[${iIdx}].title=this.value" style="width:40%">
+                    <button onclick="localData.categories[${cIdx}].items.splice(${iIdx},1);render()" style="background:#444; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">✕</button>
+                `;
+                itemsContainer.appendChild(iRow);
+
+                // 2. 首页精选页行 (同步渲染)
+                const fRow = document.createElement('div');
+                fRow.className = 'item-row';
+                fRow.innerHTML = `
+                    <input type="checkbox" ${item.featured ? 'checked' : ''} onchange="localData.categories[${cIdx}].items[${iIdx}].featured=this.checked; render()">
+                    <span style="color:var(--accent); font-size:0.75rem; width:100px;">[${cat.name}]</span>
+                    <span style="flex:1">${item.title}</span>
+                `;
+                featRoot.appendChild(fRow);
+            });
         });
-    });
-}
+    }
 
     async function handleUpload(cIdx, input) {
         const file = input.files[0];
         if(!file) return;
-
-        if(file.size > 20 * 1024 * 1024) {
-            alert("文件超过 20MB，GitHub 传输可能会非常慢，建议先压缩！");
-        }
-
-        toggleLoader(true, `正在检查文件状态: ${file.name}`);
-        
+        toggleLoader(true, `正在检查并上传: ${file.name}`);
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = async () => {
@@ -137,61 +153,35 @@ function render() {
             
             let sha = null;
             try {
-                // 第一步：尝试获取旧文件的 SHA（以防文件已存在）
-                const checkRes = await fetch(url, {
-                    headers: { 'Authorization': `token ${token}` }
-                });
-                if (checkRes.ok) {
-                    const existingFile = await checkRes.json();
-                    sha = existingFile.sha;
-                    toggleLoader(true, "发现同名文件，正在准备覆盖...");
-                }
-            } catch (e) { /* 文件不存在，sha 保持 null */ }
+                const check = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
+                if (check.ok) sha = (await check.json()).sha;
+            } catch (e) {}
 
-            toggleLoader(true, `正在上传至 GitHub...`);
-            
-            try {
-                // 第二步：执行上传（如果 sha 有值，则为更新；没值，则为新建）
-                const res = await fetch(url, {
-                    method: 'PUT',
-                    headers: { 'Authorization': `token ${token}` },
-                    body: JSON.stringify({ 
-                        message: `Upload ${file.name}`, 
-                        content: content,
-                        sha: sha // 核心修复：带上这个参数
-                    })
-                });
+            const res = await fetch(url, {
+                method: 'PUT',
+                headers: { 'Authorization': `token ${token}` },
+                body: JSON.stringify({ message: `Upload ${file.name}`, content: content, sha: sha })
+            });
 
-                if(res.ok) {
-                    // 检查是否已经在 localData 中存在该 url，避免重复添加列表项
-                    const isExist = localData.categories[cIdx].items.some(i => i.url === file.name);
-                    if (!isExist) {
-                        localData.categories[cIdx].items.push({ 
-                            type: file.type.includes('video') ? 'video' : 'image', 
-                            url: file.name, 
-                            title: file.name.split('.')[0], 
-                            featured: false 
-                        });
-                    }
-                    render();
-                    msg("✅ 上传并更新成功！别忘了最后保存。");
-                } else {
-                    const err = await res.json();
-                    msg("❌ 上传失败: " + err.message);
+            if(res.ok) {
+                if (!localData.categories[cIdx].items.some(i => i.url === file.name)) {
+                    localData.categories[cIdx].items.push({ 
+                        type: file.type.includes('video') ? 'video' : 'image', 
+                        url: file.name, title: file.name.split('.')[0], featured: false 
+                    });
                 }
-            } catch(e) {
-                msg("❌ 网络异常，请检查网络环境");
-            }
+                render();
+                msg("✅ 上传成功！");
+            } else { msg("❌ 上传失败"); }
             toggleLoader(false);
-            input.value = ''; 
         };
     }
+
     async function save() {
-        toggleLoader(true, "正在保存网站结构...");
-        const token = atob(CONFIG.T1 + CONFIG.T2);
-        const url = `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/data.json`;
-        
+        toggleLoader(true, "正在保存到服务器...");
         try {
+            const token = atob(CONFIG.T1 + CONFIG.T2);
+            const url = `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/data.json`;
             const g = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
             const d = await g.json();
             const p = await fetch(url, {
@@ -203,33 +193,26 @@ function render() {
                     sha: d.sha 
                 })
             });
-           // 约第 165 行
-if(p.ok) {
-    msg("🎉 同步成功！正在部署，请在 60 秒后刷新主页。");
-    // 自动打开 GitHub Actions 页面查看进度
-    if(confirm("数据已上传，是否前往监控部署进度？")) {
-        window.open(`https://github.com/${CONFIG.OWNER}/${CONFIG.REPO}/actions`, '_blank');
-    }
-}; else msg("❌ 同步失败");
-        } catch(e) { msg("❌ 保存出错"); }
+            if(p.ok) {
+                msg("🎉 同步成功！");
+                if(confirm("同步成功！是否前往查看部署进度？")) window.open(`https://github.com/${CONFIG.OWNER}/${CONFIG.REPO}/actions`, '_blank');
+            } else { msg("❌ 保存失败"); }
+        } catch(e) { msg("❌ 出错了"); }
         toggleLoader(false);
     }
 
-    function toggleLoader(show, text = "") {
-        document.getElementById('loader').style.display = show ? 'flex' : 'none';
-        document.getElementById('loader-text').innerText = text;
-        document.getElementById('save-btn').disabled = show;
-    }
-
+    function addCat() { localData.categories.push({name:"新分类", items:[]}); render(); }
     function msg(t) { document.getElementById('status').innerText = t; }
-    
-    function switchTab(evt, tabName) {
+    function toggleLoader(s, t) {
+        document.getElementById('loader').style.display = s ? 'flex' : 'none';
+        document.getElementById('loader-text').innerText = t;
+    }
+    function switchTab(evt, name) {
         document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(tb => tb.classList.remove('active'));
-        document.getElementById(tabName).classList.add('active');
+        document.getElementById(name).classList.add('active');
         evt.currentTarget.classList.add('active');
     }
-
     init();
 </script>
 </body>
