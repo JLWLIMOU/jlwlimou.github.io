@@ -20,20 +20,31 @@
         .hero h1 { font-size: 3.5rem; margin: 0; color: #fff; }
         .hero p { font-size: 1.2rem; color: #888; max-width: 600px; }
 
-        /* 作品集板块 */
+        /* 通用板块标题 */
         .section-title { margin-top: 80px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 3px; color: #ffcc00; }
+
+        /* 作品集板块 */
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; margin: 40px 0; }
         .card { background: #1a1a1a; aspect-ratio: 16/9; border: 1px solid #222; display: flex; align-items: center; justify-content: center; transition: 0.4s; position: relative; overflow: hidden; }
         .card:hover { border-color: #ffcc00; transform: translateY(-5px); }
-        .card span { color: #444; font-size: 0.9rem; }
 
-        /* 联系信息卡片样式 */
+        /* 简历区样式 */
+        .resume-content { background: #151515; border: 1px solid #222; padding: 40px; margin-top: 40px; border-radius: 4px; }
+        .resume-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
+        .resume-item { margin-bottom: 30px; }
+        .resume-item h3 { color: #fff; margin-bottom: 10px; font-size: 1.1rem; }
+        .resume-item p { color: #aaa; margin: 5px 0; }
+        
+        /* 下载按钮 */
+        .download-btn { display: inline-block; padding: 12px 25px; background: transparent; border: 1px solid #ffcc00; color: #ffcc00; text-decoration: none; border-radius: 4px; transition: 0.3s; font-size: 0.9rem; }
+        .download-btn:hover { background: #ffcc00; color: #000; }
+
+        /* 联系信息 */
         .contact-box { background: #151515; border: 1px solid #222; padding: 40px; margin: 40px 0; border-radius: 4px; }
         .contact-item { margin: 15px 0; font-size: 1.1rem; }
         .contact-label { color: #ffcc00; margin-right: 15px; font-weight: bold; }
-        .contact-value { color: #fff; font-family: 'Courier New', Courier, monospace; }
+        .contact-value { color: #fff; font-family: monospace; }
 
-        /* 底部 */
         footer { padding: 80px 0; color: #444; font-size: 0.9rem; border-top: 1px solid #222; }
     </style>
 </head>
@@ -44,42 +55,61 @@
         <div class="logo">JLWLIMOU</div>
         <div class="nav-links">
             <a href="#work">作品集</a>
-            <a href="#resume">个人简历</a>
-            <a href="#contact">联系我</a> </div>
+            <a href="#resume">简历</a>
+            <a href="#contact">联系我</a>
+        </div>
     </nav>
 
     <header class="hero">
         <h1>Focus on Maya Animation.</h1>
-        <p>我是 JLWLIMOU。目前致力于三维动画的运动规律学习与 Maya 技术探索。这是一个记录我从初学者到专业动画师成长的空间。</p>
+        <p>我是 JLWLIMOU。致力于三维动画的运动规律学习与 Maya 技术探索。</p>
     </header>
 
     <h2 id="work" class="section-title">个人练习 / WORKS</h2>
     <div class="grid">
         <div class="card"><span>Project 01 (Coming Soon)</span></div>
         <div class="card"><span>Project 02 (Coming Soon)</span></div>
-        <div class="card"><span>Project 03 (Coming Soon)</span></div>
     </div>
 
-    <h2 id="resume" class="section-title">关于我 / RESUME</h2>
-    <section style="margin: 40px 0;">
-        <p><strong>教育背景：</strong> 在校大学生 · 三维动画专业</p>
-        <p><strong>技术栈：</strong> Autodesk Maya / 基础骨骼绑定 / 关键帧动画</p>
-        <p><strong>自我期望：</strong> 专注于赋予数字角色灵魂，目前正在攻读《动画师生存手册》中的核心法则。</p>
-    </section>
+    <h2 id="resume" class="section-title">个人简历 / RESUME</h2>
+    <div class="resume-content">
+        <div class="resume-header">
+            <div>
+                <h2 style="color: #fff; margin: 0;">JLWLIMOU</h2>
+                <p>三维动画师 | 202X 届毕业生</p>
+            </div>
+            <a href="resume.pdf" class="download-btn" target="_blank">下载 PDF 简历</a>
+        </div>
 
+        <div class="resume-item">
+            <h3>教育经历 / EDUCATION</h3>
+            <p><strong>某某艺术院校</strong> · 三维动画专业 · 本科 (2022 - 2026)</p>
+            <p>相关课程：动画运动规律、Maya 建模与渲染、角色绑定基础</p>
+        </div>
+
+        <div class="resume-item">
+            <h3>专业技能 / SKILLS</h3>
+            <p><strong>软件:</strong> Autodesk Maya (核心), Adobe Premiere, Photoshop</p>
+            <p><strong>技术:</strong> 关键帧动画、基础骨骼绑定、三维空间感知</p>
+        </div>
+
+        <div class="resume-item">
+            <h3>自我评价 / ABOUT ME</h3>
+            <p>热爱动画艺术，专注于赋予数字生命以真实的运动质感。目前正在深入学习经典的动画十二法则，并努力通过 Maya 将创意变为现实。</p>
+        </div>
+    </div>
     <h2 id="contact" class="section-title">联系方式 / CONTACT</h2>
     <div class="contact-box">
         <div class="contact-item">
             <span class="contact-label">QQ 邮箱:</span>
-            <span class="contact-value">123456789@qq.com</span> </div>
+            <span class="contact-value">123456789@qq.com</span>
+        </div>
         <div class="contact-item">
             <span class="contact-label">电话号码:</span>
-            <span class="contact-value">+86 138-0000-0000</span> </div>
-        <div class="contact-item">
-            <span class="contact-label">GitHub:</span>
-            <span class="contact-value">github.com/JLWLIMOU</span>
+            <span class="contact-value">+86 138-0000-0000</span>
         </div>
     </div>
+
     <footer>
         <p>&copy; 2024 JLWLIMOU. Built with GitHub Pages.</p>
     </footer>
