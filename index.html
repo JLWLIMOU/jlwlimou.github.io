@@ -5,26 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>JLWLIMOU | Portfolio</title>
     <script>
-        // 【核心修复：强制置顶】
-        if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
-        // 阻塞式置顶：在页面渲染前和渲染瞬间连续执行
-        window.scrollTo(0, 0);
-        window.addEventListener('load', () => {
-            setTimeout(() => window.scrollTo(0, 0), 0);
-            document.documentElement.style.opacity = "1"; // 置顶完成后才显示内容
-        });
+        // 1. 全功能刷新置顶逻辑：多重保险方案
+        (function() {
+            if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+            // 立即锁定页面
+            document.documentElement.style.opacity = "0";
+            
+            function forceTop() {
+                window.scrollTo(0, 0);
+                if (window.scrollY !== 0) {
+                    requestAnimationFrame(forceTop);
+                } else {
+                    // 确认置顶后延迟显示，防止视觉闪烁
+                    setTimeout(() => { document.documentElement.style.opacity = "1"; }, 50);
+                }
+            }
+            window.addEventListener('load', forceTop);
+            window.addEventListener('beforeunload', () => window.scrollTo(0, 0));
+        })();
     </script>
     <style>
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; user-select: none; }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; user-select: none; outline: none; }
         :root { --accent: #ffcc00; --bg: #0a0a0a; --text-dim: #888; --ease-out: cubic-bezier(0.2, 1, 0.3, 1); }
 
-        /* 初始隐藏页面防止刷新时的滚动闪烁 */
-        html { scrollbar-width: none; background: var(--bg); scroll-behavior: smooth; opacity: 0; transition: opacity 0.3s ease; }
+        html { scrollbar-width: none; background: var(--bg); scroll-behavior: smooth; }
         html::-webkit-scrollbar { display: none; }
-        body { background: var(--bg); color: #e0e0e0; font-family: system-ui, sans-serif; margin: 0; overflow-x: hidden; }
-        body.modal-open { overflow: hidden; }
+        body { background: var(--bg); color: #e0e0e0; font-family: system-ui, -apple-system, sans-serif; margin: 0; overflow-x: hidden; }
+        body.modal-open { overflow: hidden; height: 100vh; }
 
-        nav { width: 100%; position: sticky; top: 0; background: rgba(10,10,10,0.8); backdrop-filter: blur(15px); border-bottom: 1px solid #222; z-index: 9000; }
+        /* 导航 */
+        nav { width: 100%; position: sticky; top: 0; background: rgba(10,10,10,0.85); backdrop-filter: blur(15px); border-bottom: 1px solid #222; z-index: 9000; }
         .nav-inner { padding: 15px 0; display: flex; justify-content: space-between; align-items: center; width: 92%; max-width: 1400px; margin: 0 auto; }
         .nav-links { display: flex; gap: 5px; }
         .nav-links a { 
@@ -37,62 +47,57 @@
         .container { width: 92%; max-width: 1400px; margin: 0 auto; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
 
+        /* 通用高亮框 */
         .highlight-target { 
             transition: border-color 0.4s ease, box-shadow 0.4s ease; 
             border: 1px solid #222; position: relative; cursor: pointer;
         }
-        .highlight-target:hover { border-color: var(--accent); box-shadow: 0 0 30px rgba(255, 204, 0, 0.1); }
+        .highlight-target:hover { border-color: var(--accent); box-shadow: 0 0 30px rgba(255, 204, 0, 0.15); }
 
-        /* --- 原地展开逻辑修复：支持完整比例 --- */
-        .item { position: relative; aspect-ratio: 16/10; z-index: 1; }
+        /* 作品项逻辑：支持 100% 构图完整 */
+        .item { position: relative; aspect-ratio: 16/10; z-index: 1; perspective: 1000px; }
         .item-inner { 
-            position: absolute; inset: 0; background: #000; border: 1px solid #222; border-radius: 12px; 
-            overflow: hidden; transition: all 0.6s var(--ease-out); 
+            position: absolute; inset: 0; background: #111; border: 1px solid #222; border-radius: 12px; 
+            overflow: hidden; transition: all 0.6s var(--ease-out); will-change: transform;
         }
-        .item.active { z-index: 100; }
+        .item.active { z-index: 500; }
         .item.active .item-inner { 
-            border-color: var(--accent); 
-            transform: scale(1.15); 
-            box-shadow: 0 40px 80px rgba(0,0,0,0.9);
+            border-color: var(--accent); transform: scale(1.15); 
+            box-shadow: 0 40px 80px rgba(0,0,0,0.95); background: #000;
         }
 
-        .media { width: 100%; height: 100%; background: #000; }
+        .media { width: 100%; height: 100%; position: relative; }
         .media video, .media img { 
-            width: 100%; height: 100%; 
-            object-fit: cover; /* 默认裁剪以保证网格整齐 */
-            display: block; 
-            transition: object-fit 0.4s;
+            width: 100%; height: 100%; object-fit: cover; display: block; transition: object-fit 0.4s;
         }
-        
-        /* 【显示完整比例核心】激活时切换为 contain */
-        .item.active .media video, 
-        .item.active .media img { 
-            object-fit: contain; 
-        }
+        /* 激活时强制显示完整比例 */
+        .item.active .media video, .item.active .media img { object-fit: contain; }
 
         .info { 
-            position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            position: absolute; bottom: 0; left: 0; width: 100%; padding: 25px 20px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.95));
             color: #fff; font-size: 0.9rem; text-align: center;
-            opacity: 0; transform: translateY(10px); transition: 0.4s;
+            opacity: 0; transform: translateY(15px); transition: 0.4s 0.2s; /* 延迟浮现 */
+            pointer-events: none;
         }
         .item.active .info { opacity: 1; transform: translateY(0); }
 
+        /* 弹窗库 */
         #portfolio-modal { 
             visibility: hidden; position: fixed; inset: 0; background: var(--bg); z-index: 10000; 
-            transform: translateY(60%); opacity: 0; 
+            transform: translateY(60px); opacity: 0; 
             transition: transform 0.6s var(--ease-out), opacity 0.4s, visibility 0.6s; 
-            overflow-y: scroll; 
+            overflow-y: scroll; scroll-behavior: smooth;
         }
         #portfolio-modal.active { visibility: visible; transform: translateY(0); opacity: 1; }
         
+        /* 手风琴库 */
         .accordion-content { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.8s var(--ease-out), opacity 0.5s; }
         .accordion-item.open .accordion-content { opacity: 1; }
         
         .dl-link { 
             display: inline-block; color: #fff; text-decoration: none; font-weight: bold; 
             border-bottom: 2px solid var(--accent); padding-bottom: 4px; transition: 0.3s;
-            pointer-events: auto;
         }
         .dl-link:hover { color: var(--accent); border-color: #fff; }
     </style>
@@ -154,41 +159,58 @@
 <script>
     let siteData = null;
 
+    // 全功能初始化
     async function loadData() {
         try {
             const res = await fetch('data.json');
+            if (!res.ok) throw new Error();
             siteData = await res.json();
+            
             document.getElementById('about-text').innerText = siteData.about;
             document.getElementById('email-val').innerText = siteData.email;
             document.getElementById('phone-val').innerText = siteData.phone;
+            
             renderHome();
             renderAccordion();
-        } catch(e) { console.error("Data error"); }
+        } catch(e) { 
+            console.error("Data Load Failed"); 
+            document.getElementById('about-text').innerText = "Load data failed. Check data.json.";
+        }
     }
 
+    // 全功能导航
     function handleNavClick(id) {
+        if(document.body.classList.contains('modal-open')) toggleModal(false);
         const el = document.getElementById(id);
         if(!el) return;
-        document.querySelectorAll('#smart-nav a').forEach(a => a.classList.remove('active'));
-        document.querySelector(`[data-sec="${id}"]`)?.classList.add('active');
+        
         const offset = (id === 'hero') ? 0 : el.offsetTop - 80;
         window.scrollTo({ top: offset, behavior: 'smooth' });
     }
 
+    // 联动逻辑：从首页直达弹窗内的具体项
     function openAndDetail(catIdx, title) {
         toggleModal(true);
+        // 等待弹窗动画
         setTimeout(() => {
             const itemWrap = document.getElementById(`cat-wrapper-${catIdx}`);
             if(!itemWrap) return;
-            itemWrap.classList.add('open');
-            itemWrap.querySelector('.accordion-content').style.maxHeight = '8000px';
+            
+            // 展开手风琴
+            if(!itemWrap.classList.contains('open')) {
+                const header = itemWrap.querySelector('.acc-header');
+                toggleAccordion(header);
+            }
+
+            // 滚动定位并激活
             setTimeout(() => {
                 const target = itemWrap.querySelector(`.item[data-title="${title}"]`);
                 if(target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    setTimeout(() => handleItemClick(null, target), 600);
+                    // 模拟点击激活
+                    setTimeout(() => handleItemClick(null, target), 500);
                 }
-            }, 400);
+            }, 300);
         }, 600);
     }
 
@@ -197,9 +219,12 @@
         siteData.categories.forEach((cat, cIdx) => {
             cat.items.forEach(item => {
                 if (item.featured) {
-                    html += `<div class="item" onclick="openAndDetail(${cIdx}, '${item.title}')">
+                    html += `
+                    <div class="item" onclick="openAndDetail(${cIdx}, '${item.title.replace(/'/g, "\\'")}')">
                         <div class="item-inner">
-                            <div class="media">${item.type === 'video' ? `<video src="${item.url}" loop muted playsinline></video>` : `<img src="${item.url}">`}</div>
+                            <div class="media">
+                                ${item.type === 'video' ? `<video src="${item.url}" loop muted playsinline></video>` : `<img src="${item.url}" loading="lazy">`}
+                            </div>
                             <div class="info"><b>${item.title}</b></div>
                         </div>
                     </div>`;
@@ -211,17 +236,19 @@
 
     function renderAccordion() {
         document.getElementById('accordion-root').innerHTML = siteData.categories.map((cat, idx) => `
-            <div class="accordion-item" id="cat-wrapper-${idx}" style="border-bottom: 1px solid #222; margin-bottom:20px;">
-                <div class="acc-header" style="padding:30px 0; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleAccordion(this)">
-                    <h3 style="margin:0; font-size:1.4rem;">${cat.name}</h3>
-                    <span style="font-size:1.5rem; color:var(--accent)">+</span>
+            <div class="accordion-item" id="cat-wrapper-${idx}" style="border-bottom: 1px solid #222; margin-bottom:10px;">
+                <div class="acc-header" style="padding:35px 0; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleAccordion(this)">
+                    <h3 style="margin:0; font-size:1.3rem; letter-spacing:1px;">${cat.name}</h3>
+                    <span style="font-size:1.5rem; color:var(--accent); transition:0.3s">+</span>
                 </div>
                 <div class="accordion-content">
-                    <div class="grid" style="padding:30px 0 60px;">
+                    <div class="grid" style="padding:20px 0 60px;">
                         ${cat.items.map(i => `
                             <div class="item" data-title="${i.title}" onclick="handleItemClick(event, this)">
                                 <div class="item-inner">
-                                    <div class="media">${i.type === 'video' ? `<video src="${i.url}" loop muted playsinline></video>` : `<img src="${i.url}">`}</div>
+                                    <div class="media">
+                                        ${i.type === 'video' ? `<video src="${i.url}" loop muted playsinline></video>` : `<img src="${i.url}" loading="lazy">`}
+                                    </div>
                                     <div class="info"><b>${i.title}</b></div>
                                 </div>
                             </div>
@@ -234,10 +261,13 @@
 
     function toggleAccordion(el) {
         const itemWrap = el.parentElement;
+        const content = itemWrap.querySelector('.accordion-content');
         const isOpen = itemWrap.classList.contains('open');
+        
         itemWrap.classList.toggle('open', !isOpen);
-        itemWrap.querySelector('.accordion-content').style.maxHeight = isOpen ? '0' : '8000px';
-        el.querySelector('span').innerText = isOpen ? '+' : '-';
+        content.style.maxHeight = isOpen ? '0' : content.scrollHeight + 1000 + 'px';
+        el.querySelector('span').style.transform = isOpen ? 'rotate(0deg)' : 'rotate(45deg)';
+        el.querySelector('span').innerText = isOpen ? '+' : '+'; // 保持符号不变仅旋转或直接改符号
     }
 
     function toggleModal(show) {
@@ -245,7 +275,8 @@
         m.classList.toggle('active', show);
         document.body.classList.toggle('modal-open', show);
         if(!show) {
-            document.querySelectorAll('video').forEach(v => v.pause());
+            // 全局静默：停止所有视频
+            document.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; });
             document.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
         }
     }
@@ -253,27 +284,34 @@
     function handleItemClick(e, el) {
         if(e) e.stopPropagation();
         const isActive = el.classList.contains('active');
+        
+        // 排他逻辑
         document.querySelectorAll('.item').forEach(i => {
             i.classList.remove('active');
             const v = i.querySelector('video'); if(v) v.pause();
         });
+
         if(!isActive) {
             el.classList.add('active');
-            const v = el.querySelector('video'); if(v) { v.currentTime = 0; v.play(); }
+            const v = el.querySelector('video'); 
+            if(v) { 
+                v.play().catch(() => console.log("Autoplay blocked")); 
+            }
         }
     }
 
+    // 滚动激活监听
     window.addEventListener('scroll', () => {
         if(document.body.classList.contains('modal-open')) return;
         const sections = ['hero', 'featured', 'resume', 'contact'];
+        const scrollPos = window.scrollY + 200;
+
         sections.forEach(id => {
             const el = document.getElementById(id);
-            if(el) {
-                const rect = el.getBoundingClientRect();
-                if(rect.top < 150 && rect.bottom > 150) {
-                    document.querySelectorAll('#smart-nav a').forEach(a => a.classList.remove('active'));
-                    document.querySelector(`[data-sec="${id}"]`)?.classList.add('active');
-                }
+            if(el && scrollPos >= el.offsetTop && scrollPos < el.offsetTop + el.offsetHeight) {
+                document.querySelectorAll('#smart-nav a').forEach(a => {
+                    a.classList.toggle('active', a.getAttribute('data-sec') === id);
+                });
             }
         });
     });
