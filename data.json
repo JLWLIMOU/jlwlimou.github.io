@@ -7,13 +7,13 @@
           "type": "image",
           "url": "6ecf8f60e0f1eca89662b4da47f9f71d.jpg",
           "title": "马",
-          "featured": false
+          "featured": true
         },
         {
           "type": "image",
           "url": "9A0390F02AEEE5DBF0B9D18CFE94EC63 (1).jpg",
           "title": "IP设计",
-          "featured": false
+          "featured": true
         }
       ]
     }
