@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>JLWLIMOU - 私人后台管理</title>
+    <style>
+        body { background: #1a1a1a; color: #fff; font-family: sans-serif; padding: 40px; }
+        .editor-box { max-width: 600px; margin: auto; background: #222; padding: 30px; border-radius: 8px; border: 1px solid #333; }
+        h2 { color: #ffcc00; }
+        label { display: block; margin-top: 15px; color: #aaa; font-size: 0.9rem; }
+        input, textarea { width: 100%; padding: 10px; margin-top: 5px; background: #333; border: 1px solid #444; color: #fff; border-radius: 4px; box-sizing: border-box; }
+        button { background: #ffcc00; color: #000; border: none; padding: 15px 30px; margin-top: 20px; cursor: pointer; font-weight: bold; width: 100%; border-radius: 4px; }
+        button:hover { background: #e6b800; }
+        .info { font-size: 0.8rem; color: #666; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="editor-box">
+        <h2>站点内容编辑器</h2>
+        <p class="info">修改后点击保存，你的个人网站将在 1 分钟内同步更新。</p>
+        
+        <label>联系电话</label>
+        <input type="text" id="phone" placeholder="请输入新电话">
+
+        <label>QQ 邮箱</label>
+        <input type="text" id="email" placeholder="请输入新邮箱">
+
+        <label>自我评价 (简历区)</label>
+        <textarea id="about" rows="4"></textarea>
+
+        <label>GitHub 访问密钥 (Token)</label>
+        <input type="password" id="token" placeholder="在此输入你的私人密钥以授权修改">
+
+        <button onclick="saveData()">发布更新</button>
+        <p id="status"></p>
+    </div>
+
+    <script>
+        // 这里未来会写一段简单的脚本，负责把填好的内容“投递”给 GitHub
+        function saveData() {
+            const status = document.getElementById('status');
+            status.innerText = "正在同步到服务器...";
+            // 具体的 API 投递逻辑我们稍后配置
+            setTimeout(() => { status.innerText = "更新指令已发出！请刷新主站查看。"; }, 2000);
+        }
+    </script>
+</body>
+</html>
