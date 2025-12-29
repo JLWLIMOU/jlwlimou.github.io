@@ -3,36 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JLWLIMOU | 3D Portfolio</title>
+    <title>JLWLIMOU | 3D Animator Portfolio</title>
     <style>
-        body { background-color: #0a0a0a; color: #e0e0e0; font-family: sans-serif; margin: 0; scroll-behavior: smooth; }
+        /* 全局样式 */
+        body { background-color: #0a0a0a; color: #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; scroll-behavior: smooth; }
         .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
-        nav { padding: 30px 0; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
-        .logo { font-weight: bold; letter-spacing: 2px; color: #ffcc00; text-decoration: none; }
-        .nav-links a { color: #888; text-decoration: none; margin-left: 25px; font-size: 0.9rem; }
-        .hero { padding: 80px 0; border-bottom: 1px solid #222; }
-        .hero h1 { font-size: 3rem; margin: 0; color: #fff; }
-        .section-title { margin-top: 60px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 4px; color: #ffcc00; }
         
-        /* 简历区域标题行 */
-        .resume-header { display: flex; justify-content: space-between; align-items: center; margin-top: 60px; }
-        .download-btn { display: inline-block; padding: 8px 18px; border: 1px solid #ffcc00; color: #ffcc00; text-decoration: none; border-radius: 4px; font-size: 0.8rem; transition: 0.3s; }
-        .download-btn:hover { background: #ffcc00; color: #000; }
+        /* 导航栏 */
+        nav { padding: 30px 0; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
+        .logo { font-weight: bold; letter-spacing: 2px; color: #ffcc00; text-decoration: none; font-size: 1.2rem; }
+        .nav-links a { color: #888; text-decoration: none; margin-left: 25px; font-size: 0.9rem; transition: 0.3s; }
+        .nav-links a:hover { color: #ffcc00; }
 
+        /* Hero 简介区 */
+        .hero { padding: 80px 0; border-bottom: 1px solid #222; }
+        .hero h1 { font-size: 3rem; margin: 0; color: #fff; letter-spacing: -1px; }
+        #about-text { font-size: 1.2rem; color: #888; max-width: 700px; line-height: 1.8; }
+
+        /* 标题样式 */
+        .section-title { margin-top: 60px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 4px; color: #ffcc00; }
+
+        /* 作品网格 */
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; margin: 40px 0; }
-        .work-item { background: #111; border: 1px solid #222; border-radius: 8px; overflow: hidden; }
-        .media-container { width: 100%; aspect-ratio: 16/9; background: #000; }
+        .work-item { background: #111; border: 1px solid #222; border-radius: 12px; overflow: hidden; transition: 0.4s; }
+        .work-item:hover { border-color: #ffcc00; }
+        .media-container { width: 100%; aspect-ratio: 16/9; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .media-container video, .media-container img { width: 100%; height: 100%; object-fit: cover; }
-        .contact-box { background: #151515; border: 1px solid #222; padding: 30px; margin: 40px 0; border-radius: 8px; }
-        .contact-label { color: #ffcc00; margin-right: 15px; font-weight: bold; }
-        .resume-preview { width: 100%; height: 500px; border: 1px solid #222; margin-top: 20px; border-radius: 8px; }
+        .media-placeholder { color: #333; font-size: 0.8rem; }
+
+        /* 简历下载区 */
+        .download-box { background: #111; border: 1px solid #222; padding: 60px 20px; margin: 40px 0; border-radius: 12px; text-align: center; }
+        .download-btn { display: inline-block; padding: 15px 40px; border: 1px solid #ffcc00; color: #ffcc00; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 1rem; transition: 0.3s; cursor: pointer; }
+        .download-btn:hover { background: #ffcc00; color: #000; transform: translateY(-2px); }
+        #dl-status { margin-top: 20px; color: #00ff00; font-size: 0.9rem; display: none; height: 20px; }
+
+        /* 联系方式 */
+        .contact-box { background: #151515; border: 1px solid #222; padding: 30px; margin: 40px 0; border-radius: 12px; }
+        .contact-item { margin: 15px 0; font-size: 1rem; display: flex; align-items: center; }
+        .contact-label { color: #ffcc00; width: 100px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; }
+        .contact-value { color: #fff; font-family: monospace; }
+
+        footer { padding: 60px 0; text-align: center; color: #333; font-size: 0.8rem; border-top: 1px solid #222; }
     </style>
 </head>
 <body>
+
 <div class="container">
     <nav>
         <a href="#" class="logo">JLWLIMOU</a>
-        <div class="nav-links"><a href="#work">作品</a><a href="#resume">简历</a><a href="#contact">联系</a></div>
+        <div class="nav-links">
+            <a href="#work">作品</a>
+            <a href="#resume">简历</a>
+            <a href="#contact">联系</a>
+            <a href="admin.html" style="color: #444;">后台</a>
+        </div>
     </nav>
 
     <header class="hero">
@@ -43,24 +67,63 @@
     <h2 id="work" class="section-title">作品集 / WORKS</h2>
     <div class="grid">
         <div class="work-item">
-            <div class="media-container"><video autoplay loop muted playsinline><source src="work1.mp4" type="video/mp4"></video></div>
+            <div class="media-container">
+                <video autoplay loop muted playsinline>
+                    <source src="work1.mp4" type="video/mp4">
+                    <div class="media-placeholder">等待上传视频 work1.mp4</div>
+                </video>
+            </div>
         </div>
         <div class="work-item">
-            <div class="media-container"><img src="render1.jpg"></div>
+            <div class="media-container">
+                <img src="render1.jpg" onerror="this.style.display='none'">
+                <div class="media-placeholder">等待上传图片 render1.jpg</div>
+            </div>
         </div>
     </div>
 
-    <div id="resume" class="resume-header">
-        <h2 class="section-title" style="margin-top:0;">简历 / RESUME</h2>
-        <a href="resume.pdf" class="download-btn" download>点击下载 PDF 简历</a>
+    <h2 id="resume" class="section-title">个人简历 / RESUME</h2>
+    <div class="download-box">
+        <p style="color: #888; margin-bottom: 30px;">最新版作品集简历 (PDF 格式)</p>
+        <a href="resume.pdf" class="download-btn" id="dl-btn" download onclick="handleDownload()">
+            下载简历 PDF
+        </a>
+        <div id="dl-status">✅ 下载已启动，请检查浏览器下载记录</div>
     </div>
-    <iframe src="resume.pdf" class="resume-preview"></iframe>
 
     <h2 id="contact" class="section-title">联系方式 / CONTACT</h2>
     <div class="contact-box">
-        <p><span class="contact-label">QQ 邮箱:</span><span id="email-val">3227481298@qq.com</span></p>
-        <p><span class="contact-label">电话号码:</span><span id="phone-val">13627208879</span></p>
+        <div class="contact-item">
+            <span class="contact-label">QQ Email:</span>
+            <span class="contact-value" id="email-val">123456789@qq.com</span>
+        </div>
+        <div class="contact-item">
+            <span class="contact-label">Phone:</span>
+            <span class="contact-value" id="phone-val">+86 138-0000-0000</span>
+        </div>
     </div>
+
+    <footer>
+        <p>&copy; 2025 JLWLIMOU. Powered by GitHub Pages.</p>
+    </footer>
 </div>
+
+<script>
+    // 简历下载反馈逻辑
+    function handleDownload() {
+        const btn = document.getElementById('dl-btn');
+        const status = document.getElementById('dl-status');
+        
+        btn.innerText = "正在准备文件...";
+        btn.style.opacity = "0.7";
+        
+        setTimeout(() => {
+            status.style.display = "block";
+            btn.innerText = "再次下载";
+            btn.style.opacity = "1";
+        }, 1500);
+    }
+</script>
+
 </body>
 </html>
