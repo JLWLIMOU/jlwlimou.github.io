@@ -23,65 +23,28 @@
         .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin: 0; color: #fff; line-height: 1.1; }
         #about-text { font-size: 1.2rem; color: #888; max-width: 800px; line-height: 1.8; margin-top: 20px; }
 
-        /* --- 核心优化：彻底的浮层拉大幕 --- */
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); 
-            gap: 40px; 
-            /* 确保容器不会因为子元素绝对定位溢出而产生奇怪的滚动 */
-            position: relative; 
-        }
-
-        .item { 
-            position: relative; 
-            height: 320px; /* 严格固定占位 */
-        }
-
+        /* 核心：浮层式拉大幕 */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 40px; position: relative; }
+        .item { position: relative; height: 320px; }
         .item-inner {
-            position: absolute;
-            top: 0; left: 0; width: 100%;
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 12px;
-            overflow: hidden;
-            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-            z-index: 10; /* 基础层级 */
+            position: absolute; top: 0; left: 0; width: 100%;
+            background: #111; border: 1px solid #222; border-radius: 12px;
+            overflow: hidden; transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 10;
         }
+        .media { width: 100%; height: 250px; background: #000; transition: height 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .media img, .media video { width: 100%; height: 100%; display: block; object-fit: contain; background: #000; }
 
-        /* 解决“瞬间缩小”的核心：保持一致的渲染模式 */
-        .media { 
-            width: 100%; 
-            height: 250px; 
-            background: #000;
-            transition: height 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-            position: relative;
-        }
-
-        .media img, .media video { 
-            width: 100%; height: 100%; 
-            display: block;
-            object-fit: contain; /* 始终使用 contain 模式，避免切换跳动 */
-            background: #000; /* 用黑色背景填充预览态的空隙 */
-        }
-
-        /* 悬浮交互：向上盖过一切 */
-        .item:hover { z-index: 1000; } /* 必须给父级极高 z-index 以遮挡下一行 */
-        
+        /* 悬浮交互 */
+        .item:hover { z-index: 1000; } 
         .item:hover .item-inner {
-            width: 110%; 
-            left: -5%;
+            width: 110%; left: -5%;
             box-shadow: 0 30px 80px rgba(0,0,0,1);
-            border-color: var(--accent);
-            transform: translateY(-10px); /* 悬浮感 */
+            border-color: var(--accent); transform: translateY(-10px);
         }
-
-        .item:hover .media { 
-            height: 550px; 
-        }
-
+        .item:hover .media { height: 550px; }
         .info { padding: 15px; font-size: 0.85rem; color: #666; background: #161616; text-align: center; }
 
-        /* 弹窗与简历保持原位 */
+        /* 弹窗与页脚 */
         #portfolio-modal { position: fixed; top: 100%; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; overflow-y: auto; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
         #portfolio-modal.active { transform: translateY(-100%); }
         .modal-header { position: sticky; top: 0; background: rgba(10,10,10,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #222; z-index: 2001; }
@@ -94,7 +57,7 @@
 </head>
 <body>
 
-<nav>
+<nav id="site-top">
     <div class="nav-inner">
         <div class="logo" onclick="window.scrollTo({top:0, behavior:'smooth'})">JLWLIMOU</div>
         <div class="nav-links">
@@ -146,12 +109,17 @@
 </div>
 
 <script>
+    // 立即执行：禁止浏览器自动恢复滚动位置
     if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+    // 强制瞬间归零，防止刷新时的位置闪烁
     window.scrollTo(0, 0);
 
     let siteData = null;
 
     async function loadData() {
+        // 在开始加载数据前再次归零，确保后续渲染不会导致滚动条跳动
+        window.scrollTo(0, 0);
+        
         try {
             const res = await fetch('data.json?t=' + Date.now());
             siteData = await res.json();
@@ -167,8 +135,11 @@
             fGrid.innerHTML = fHtml || '<p style="color:#444">暂无精选内容</p>';
             renderAccordion();
 
-            // 彻底的平滑滑动
-            setTimeout(() => { window.scrollTo({ top: 0, left: 0, behavior: 'smooth' }); }, 150);
+            // 数据渲染完毕后，执行最终的平滑滑动效果
+            // 此时页面已有完整高度，滑动会非常顺畅且目标准确
+            setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 50);
         } catch(e) { console.error("Data Load Error"); }
     }
 
@@ -193,7 +164,7 @@
             <div class="accordion-item" style="border-bottom:1px solid #222;">
                 <div class="accordion-header" style="padding:30px 0; cursor:pointer; display:flex; justify-content:space-between;" onclick="toggleAccordion(this)">
                     <h3 style="margin:0;">${cat.name} <small style="color:#333; margin-left:10px;">${cat.items.length}</small></h3>
-                    <span class="arrow">▼</span>
+                    <span class="arrow" style="transition:0.3s; color:#444;">▼</span>
                 </div>
                 <div class="accordion-content" style="display:none; padding-bottom:50px;">
                     <div class="grid">${cat.items.map(i => renderItem(i)).join('')}</div>
@@ -228,6 +199,9 @@
         m.classList.toggle('active', show);
         document.body.style.overflow = show ? 'hidden' : 'auto';
     }
+
+    // 监听初始渲染，双重保险
+    window.addEventListener('load', () => window.scrollTo(0, 0));
 
     loadData();
 </script>
