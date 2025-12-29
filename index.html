@@ -14,13 +14,12 @@
             --ease: cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        /* --- 强制隐藏浏览器多余的视频控制按钮 --- */
+        /* --- 彻底净化视频 UI --- */
         video::-webkit-media-controls-panel { width: 100% !important; }
-        /* 隐藏画中画、静音、翻译音频等额外菜单按钮 */
-        video::-webkit-media-controls-picture-in-picture-button { display: none !important; }
-        video::-internal-media-controls-download-button { display: none !important; }
-        video::-webkit-media-controls-enclosure { overflow: hidden !important; }
+        video::-webkit-media-controls-picture-in-picture-button,
+        video::-internal-media-controls-download-button,
         video::-webkit-media-controls-remote-playback-button { display: none !important; }
+        video::-webkit-media-controls-enclosure { overflow: hidden !important; }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { 
@@ -29,6 +28,7 @@
             overflow-x: hidden; user-select: none;
         }
 
+        /* Toast 提示 */
         #toast {
             position: fixed; top: -50px; left: 50%; transform: translateX(-50%);
             background: var(--accent); color: #000; padding: 10px 25px;
@@ -37,34 +37,38 @@
         }
         #toast.show { top: 30px; }
 
+        /* 导航 */
         nav {
             position: fixed; top: 0; width: 100%; z-index: 1000;
             padding: 18px 5%; display: flex; justify-content: space-between; align-items: center;
             background: rgba(5,5,5,0.8); backdrop-filter: blur(15px);
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .logo { font-weight: 900; letter-spacing: 2px; cursor: pointer; }
         .nav-quick-links a { color: var(--text-dim); text-decoration: none; font-size: 0.75rem; font-weight: 700; margin-left: 20px; transition: 0.3s; }
         .nav-quick-links a:hover { color: var(--accent); }
 
+        /* 英雄区 */
         .hero { height: 45vh; display: flex; flex-direction: column; justify-content: center; padding: 0 10%; }
         .hero h1 { font-size: clamp(2.3rem, 7vw, 4rem); margin: 0; font-weight: 850; letter-spacing: -1px; line-height: 1.1; }
         
+        /* 内容布局 */
         .container { padding: 0 5% 100px; }
         .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; border-bottom: 1px solid #222; padding-bottom: 15px; }
-        .section-title { font-size: 0.7rem; letter-spacing: 4px; color: var(--text-dim); text-transform: uppercase; }
-        .lib-inline-trigger { background: var(--accent); color: #000; padding: 8px 20px; border-radius: 4px; font-size: 0.7rem; font-weight: 850; cursor: pointer; border: none; transition: 0.2s; }
-        .lib-inline-trigger:hover { transform: scale(1.05); }
+        .section-title { font-size: 0.7rem; letter-spacing: 4px; color: var(--text-dim); }
+        .lib-inline-trigger { background: var(--accent); color: #000; padding: 8px 20px; border-radius: 4px; font-size: 0.7rem; font-weight: 850; cursor: pointer; border: none; }
 
+        /* 精选网格 */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 25px; }
-        .card { background: var(--panel); border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; cursor: pointer; position: relative; transition: 0.3s var(--ease); }
+        .card { background: var(--panel); border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; cursor: pointer; transition: 0.3s var(--ease); }
         .card:hover { transform: translateY(-5px); }
         .card video, .card img { width: 100%; height: 100%; object-fit: cover; background: #000; }
 
+        /* 作品库遮罩 */
         #library-overlay { position: fixed; inset: 0; background: #080808; z-index: 2000; transform: translateY(100%); transition: transform 0.5s var(--ease); overflow-y: auto; padding: 100px 5% 50px; }
         #library-overlay.active { transform: translateY(0); }
-        .close-lib { position: fixed; top: 25px; right: 5%; z-index: 2100; cursor: pointer; color: var(--accent); font-weight: 900; background: rgba(0,0,0,0.6); padding: 8px 20px; border-radius: 30px; font-size: 0.8rem;}
+        .close-lib { position: fixed; top: 25px; right: 5%; z-index: 2100; cursor: pointer; color: var(--accent); font-weight: 900; background: rgba(0,0,0,0.6); padding: 8px 20px; border-radius: 30px; }
 
+        /* 库内项 */
         .cat-box { margin-bottom: 15px; background: rgba(255,255,255,0.02); border-radius: 12px; overflow: hidden; }
         .cat-header { padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .cat-content { display: none; padding: 0 25px 25px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; opacity: 0; transform: translateY(10px); }
@@ -76,11 +80,20 @@
         .lib-thumb { width: 100px; height: 60px; border-radius: 4px; overflow: hidden; flex-shrink: 0; background: #111; }
         .lib-thumb video, .lib-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
+        /* 全屏播放器 */
         #viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 3000; display: none; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
         #viewer.active { display: flex; opacity: 1; }
         .viewer-box { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 40px; }
-        .viewer-box video, .viewer-box img { max-width: 100%; max-height: 90vh; object-fit: contain; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .viewer-box video, .viewer-box img { max-width: 100%; max-height: 90vh; object-fit: contain; }
         .viewer-close { position: absolute; top: 30px; right: 40px; font-size: 3rem; cursor: pointer; color: #fff; line-height: 1; z-index: 3100;}
+        
+        /* 独立下载按钮 */
+        .viewer-download {
+            position: absolute; bottom: 30px; right: 40px; background: var(--accent); color: #000;
+            padding: 12px 25px; border-radius: 30px; font-weight: 800; font-size: 0.8rem;
+            cursor: pointer; text-decoration: none; transition: 0.3s; z-index: 3100;
+        }
+        .viewer-download:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255,204,0,0.3); }
 
         footer { padding: 80px 10% 120px; border-top: 1px solid #111; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
         .big-link { font-size: 1.6rem; font-weight: 800; color: #fff; text-decoration: none; display: block; margin-bottom: 8px; transition: 0.3s; }
@@ -88,25 +101,25 @@
 </head>
 <body>
 
-<div id="toast">简历文件已开始下载 / CV Download Started</div>
+<div id="toast">文件下载已开始 / Download Started</div>
 
 <nav>
     <div class="logo" onclick="location.reload()">JLWLIMOU</div>
     <div class="nav-quick-links">
-        <a href="#featured-anchor">精选 SELECTED</a>
-        <a href="#contact-anchor">联系 CONTACT</a>
+        <a href="#featured-anchor">SELECTED</a>
+        <a href="#contact-anchor">CONTACT</a>
     </div>
 </nav>
 
 <section class="hero">
-    <h1>Maya 动画作品集<br><span style="color:var(--text-dim)">SHOWCASE 2025.</span></h1>
+    <h1>MAYA ANIMATION<br><span style="color:var(--text-dim)">ARTFOLIO 2025.</span></h1>
     <p id="about-text">Loading...</p>
 </section>
 
 <div class="container" id="featured-anchor">
     <div class="section-header">
-        <div class="section-title">Selected 精选展示</div>
-        <button class="lib-inline-trigger" onclick="toggleLibrary(true)">浏览全库 LIBRARY</button>
+        <div class="section-title">SELECTED 精选展示</div>
+        <button class="lib-inline-trigger" onclick="toggleLibrary(true)">作品库 LIBRARY</button>
     </div>
     <div id="featured-grid" class="grid"></div>
 </div>
@@ -114,34 +127,33 @@
 <footer id="contact-anchor">
     <div>
         <span style="color:var(--accent); font-size:0.7rem; letter-spacing:2px;">RESUME</span>
-        <a href="resume.pdf" download onclick="showToast()" class="big-link">下载简历 DOWNLOAD CV.</a>
+        <a href="resume.pdf" download onclick="showToast('简历下载中...')" class="big-link">DOWNLOAD CV.</a>
         <p id="exp-text" style="color:var(--text-dim); font-size:0.9rem;"></p>
     </div>
     <div>
         <span style="color:var(--accent); font-size:0.7rem; letter-spacing:2px;">CONTACT</span>
-        <a id="email-link" href="#" class="big-link">发送邮件 EMAIL ME.</a>
+        <a id="email-link" href="#" class="big-link">EMAIL ME.</a>
         <p id="phone-val" style="color:var(--text-dim); font-size:1.1rem;"></p>
     </div>
 </footer>
 
 <div id="library-overlay">
-    <div class="close-lib" onclick="toggleLibrary(false)">关闭库 CLOSE</div>
+    <div class="close-lib" onclick="toggleLibrary(false)">CLOSE</div>
     <div id="library-content"></div>
 </div>
 
-<div id="viewer" onclick="closeViewer()">
-    <div class="viewer-close">&times;</div>
-    <div class="viewer-box" id="viewer-media" onclick="event.stopPropagation()"></div>
+<div id="viewer">
+    <div class="viewer-close" onclick="closeViewer()">&times;</div>
+    <div class="viewer-box" id="viewer-media"></div>
+    <a id="dl-btn" href="#" download class="viewer-download" onclick="showToast('正在准备文件下载...')">DOWNLOAD SOURCE</a>
 </div>
 
 <script>
     let siteData = null;
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-            if (entry.target.tagName === 'VIDEO') {
-                if (entry.isIntersecting) entry.target.play().catch(()=>{});
-                else entry.target.pause();
-            }
+            if (entry.target.tagName === 'VIDEO' && entry.isIntersecting) entry.target.play().catch(()=>{});
+            else if (entry.target.tagName === 'VIDEO') entry.target.pause();
         });
     }, { threshold: 0.1 });
 
@@ -155,11 +167,12 @@
             document.getElementById('email-link').href = `mailto:${siteData.email}`;
             document.getElementById('phone-val').innerText = siteData.phone || "";
             render();
-        } catch(e) { console.error("Data error"); }
+        } catch(e) { console.error("Error loading data.json"); }
     }
 
-    function showToast() {
+    function showToast(msg) {
         const t = document.getElementById('toast');
+        t.innerText = msg;
         t.classList.add('show');
         setTimeout(() => t.classList.remove('show'), 2500);
     }
@@ -167,11 +180,7 @@
     function setupVideoHover(el) {
         el.addEventListener('mouseenter', () => {
             const v = el.querySelector('video');
-            if(v) { 
-                v.muted = true; 
-                v.disablePictureInPicture = true; // 强制禁用画中画
-                v.play().catch(()=>{}); 
-            }
+            if(v) { v.muted = true; v.disablePictureInPicture = true; v.play().catch(()=>{}); }
         });
         el.addEventListener('mouseleave', () => {
             const v = el.querySelector('video');
@@ -202,8 +211,7 @@
             libHtml += `
                 <div class="cat-box ${isOpen}">
                     <div class="cat-header" onclick="this.parentElement.classList.toggle('open')">
-                        <h3>${cat.name}</h3>
-                        <span style="color:var(--accent)">▼</span>
+                        <h3>${cat.name}</h3><span style="color:var(--accent)">▼</span>
                     </div>
                     <div class="cat-content">
                         ${cat.items.map(i => `
@@ -232,10 +240,15 @@
     function openViewer(url, type) {
         const v = document.getElementById('viewer');
         const box = document.getElementById('viewer-media');
-        // 加入 controlsList="nodownload noplaybackrate" 进一步减少按钮
+        const dl = document.getElementById('dl-btn');
+
+        // 更新下载链接
+        dl.href = url;
+        
         box.innerHTML = type === 'video' 
             ? `<video src="${url}" controls autoplay loop playsinline disablePictureInPicture controlsList="nodownload noplaybackrate" oncontextmenu="return false;"></video>` 
             : `<img src="${url}">`;
+        
         v.style.display = 'flex';
         setTimeout(() => v.classList.add('active'), 10);
         document.body.style.overflow = 'hidden';
@@ -247,9 +260,7 @@
         setTimeout(() => {
             v.style.display = 'none';
             document.getElementById('viewer-media').innerHTML = '';
-            if(!document.getElementById('library-overlay').classList.contains('active')) {
-                document.body.style.overflow = 'auto';
-            }
+            if(!document.getElementById('library-overlay').classList.contains('active')) document.body.style.overflow = 'auto';
         }, 400);
     }
 
