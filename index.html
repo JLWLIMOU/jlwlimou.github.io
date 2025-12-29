@@ -8,72 +8,50 @@
         html { scroll-behavior: smooth; }
         body { background-color: #0a0a0a; color: #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; overflow-x: hidden; }
         
-        /* 通用容器：控制内容宽度 */
+        /* 修复抖动的关键：给 body 预留滚动条空间的变化 */
+        body.modal-open { padding-right: 0px; } /* 逻辑在JS中动态处理 */
+
         .container { width: 92%; max-width: 1400px; margin: 0 auto; }
         
-        /* --- 核心修复：全宽导航栏 --- */
         nav { 
-            width: 100%; /* 背景横贯全屏 */
-            position: sticky; 
-            top: 0; 
-            background: rgba(10, 10, 10, 0.85); 
-            backdrop-filter: blur(12px); 
-            -webkit-backdrop-filter: blur(12px); 
-            border-bottom: 1px solid #222;
-            z-index: 100;
+            width: 100%; position: sticky; top: 0; 
+            background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); 
+            border-bottom: 1px solid #222; z-index: 100;
         }
-        /* 导航栏内部容器：确保文字对齐正文 */
         .nav-inner { 
-            width: 92%; 
-            max-width: 1400px; 
-            margin: 0 auto; 
-            padding: 25px 0; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
+            width: 92%; max-width: 1400px; margin: 0 auto; padding: 25px 0; 
+            display: flex; justify-content: space-between; align-items: center; 
         }
         
         .logo { font-weight: bold; letter-spacing: 2px; color: #ffcc00; text-decoration: none; font-size: 1.4rem; cursor: pointer; }
         .nav-links a { color: #888; text-decoration: none; margin-left: 30px; font-size: 0.95rem; transition: 0.3s; }
         .nav-links a:hover { color: #ffcc00; }
 
-        /* Hero 区 */
         .hero { padding: 120px 0; border-bottom: 1px solid #222; }
         .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin: 0; color: #fff; line-height: 1.1; }
         #about-text { font-size: 1.2rem; color: #888; max-width: 800px; line-height: 1.8; margin-top: 20px; }
 
-        /* 作品网格 */
         .section-title { margin-top: 80px; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 4px; color: #ffcc00; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin: 40px 0; }
-        .work-item { background: #111; border: 1px solid #222; border-radius: 12px; overflow: hidden; transition: 0.5s; position: relative;}
+        .work-item { background: #111; border: 1px solid #222; border-radius: 12px; overflow: hidden; transition: 0.5s; }
         .work-item:hover { border-color: #ffcc00; transform: translateY(-8px); }
         .media-container { width: 100%; aspect-ratio: 16/9; background: #000; display: flex; align-items: center; justify-content: center; }
         .media-container video, .media-container img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* 查看更多按钮 */
         .more-btn-container { text-align: center; margin: 40px 0 80px; }
-        .more-btn { background: transparent; border: 1px solid #444; color: #aaa; padding: 15px 45px; border-radius: 40px; cursor: pointer; transition: 0.3s; font-size: 1rem; }
-        .more-btn:hover { border-color: #ffcc00; color: #ffcc00; box-shadow: 0 0 20px rgba(255,204,0,0.1); }
+        .more-btn { background: transparent; border: 1px solid #444; color: #aaa; padding: 18px 50px; border-radius: 40px; cursor: pointer; transition: 0.3s; font-size: 1rem; letter-spacing: 1px; }
+        .more-btn:hover { border-color: #ffcc00; color: #ffcc00; background: rgba(255,204,0,0.05); }
 
-        /* 作品全屏弹窗 */
         #portfolio-modal {
             position: fixed; top: 100%; left: 0; width: 100%; height: 100%;
             background: #0a0a0a; z-index: 1000; overflow-y: auto;
             transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
         #portfolio-modal.active { transform: translateY(-100%); }
-        /* 弹窗顶部也要全宽 */
-        .modal-header { 
-            position: sticky; top: 0; background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(12px); 
-            z-index: 1001; border-bottom: 1px solid #222;
-        }
-        .modal-header-inner {
-            width: 92%; max-width: 1400px; margin: 0 auto; padding: 20px 0;
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        .modal-header { position: sticky; top: 0; background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(12px); z-index: 1001; border-bottom: 1px solid #222; }
+        .modal-header-inner { width: 92%; max-width: 1400px; margin: 0 auto; padding: 20px 0; display: flex; justify-content: space-between; align-items: center; }
         .back-btn { background: #ffcc00; border: none; color: #000; padding: 10px 25px; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
-        /* 底部简历与联系区 */
         .footer-sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; margin-bottom: 80px; }
         .download-box, .contact-box { background: #111; border: 1px solid #222; padding: 40px; border-radius: 12px; }
         .download-btn { display: inline-block; padding: 15px 30px; border: 1px solid #ffcc00; color: #ffcc00; text-decoration: none; border-radius: 6px; font-weight: bold; transition: 0.3s; width: 100%; box-sizing: border-box; text-align: center; }
@@ -86,7 +64,6 @@
         @media (max-width: 600px) {
             .grid { grid-template-columns: 1fr; }
             .hero h1 { font-size: 2.2rem; }
-            .nav-inner, .modal-header-inner { padding: 20px 0; }
         }
     </style>
 </head>
@@ -96,7 +73,7 @@
     <div class="nav-inner">
         <div class="logo" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">JLWLIMOU</div>
         <div class="nav-links">
-            <a href="#work">作品</a>
+            <a href="#work">作品集</a>
             <a href="#resume">简历</a>
             <a href="#contact">联系</a>
         </div>
@@ -111,16 +88,12 @@
 
     <h2 id="work" class="section-title">精选作品 / FEATURED</h2>
     <div class="grid">
-        <div class="work-item">
-            <div class="media-container"><video autoplay loop muted playsinline><source src="work1.mp4" type="video/mp4"></video></div>
-        </div>
-        <div class="work-item">
-            <div class="media-container"><img src="render1.jpg"></div>
-        </div>
+        <div class="work-item"><div class="media-container"><video autoplay loop muted playsinline><source src="work1.mp4" type="video/mp4"></video></div></div>
+        <div class="work-item"><div class="media-container"><img src="render1.jpg"></div></div>
     </div>
 
     <div class="more-btn-container">
-        <button class="more-btn" onclick="toggleModal(true)">查看更多全部案例 +</button>
+        <button class="more-btn" onclick="toggleModal(true)">查看更多作品集 +</button>
     </div>
 
     <div class="footer-sections">
@@ -131,29 +104,21 @@
                 <a href="resume.pdf" class="download-btn" download>下载我的简历PDF</a>
             </div>
         </div>
-
         <div id="contact">
             <h2 class="section-title" style="margin-top:0">联系 / CONTACT</h2>
             <div class="contact-box">
-                <div style="margin-bottom:20px;">
-                    <span class="contact-label">QQ EMAIL</span>
-                    <span class="contact-value" id="email-val">3227481298@qq.com</span>
-                </div>
-                <div>
-                    <span class="contact-label">PHONE</span>
-                    <span class="contact-value" id="phone-val">13627208879</span>
-                </div>
+                <div style="margin-bottom:20px;"><span class="contact-label">QQ EMAIL</span><span class="contact-value" id="email-val">123456789@qq.com</span></div>
+                <div><span class="contact-label">PHONE</span><span class="contact-value" id="phone-val">+86 138-0000-0000</span></div>
             </div>
         </div>
     </div>
-
     <footer>&copy; 2025 JLWLIMOU. Designed for Motion.</footer>
 </div>
 
 <div id="portfolio-modal">
     <div class="modal-header">
         <div class="modal-header-inner">
-            <h2 style="margin:0; color:#ffcc00; letter-spacing: 2px; font-size: 1.2rem;">ALL WORKS</h2>
+            <h2 style="margin:0; color:#ffcc00; letter-spacing: 2px; font-size: 1.2rem;">FULL PORTFOLIO</h2>
             <button class="back-btn" onclick="toggleModal(false)">← 返回首页</button>
         </div>
     </div>
@@ -170,30 +135,31 @@
 <script>
     function toggleModal(show) {
         const modal = document.getElementById('portfolio-modal');
+        const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth; // 计算滚动条宽度
+        
         if (show) {
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
+            document.body.style.paddingRight = scrollBarWidth + 'px'; // 补齐消失的宽度
             modal.scrollTop = 0;
         } else {
             modal.classList.remove('active');
             document.body.style.overflow = 'auto';
+            document.body.style.paddingRight = '0px'; // 恢复
         }
     }
 
+    // 平滑滚动代码保持不变...
     document.querySelectorAll('.nav-links a').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
             const targetId = this.getAttribute('href').substring(1);
             const targetElement = document.getElementById(targetId);
             if (targetElement) {
-                window.scrollTo({
-                    top: targetElement.offsetTop - 100,
-                    behavior: 'smooth'
-                });
+                window.scrollTo({ top: targetElement.offsetTop - 100, behavior: 'smooth' });
             }
         });
     });
 </script>
-
 </body>
 </html>
