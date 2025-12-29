@@ -5,37 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JLWLIMOU | Portfolio</title>
     <style>
-        /* 样式保持你的酷黑风格 */
+        /* --- 基础样式 --- */
         html { scroll-behavior: smooth; }
         body { background: #0a0a0a; color: #e0e0e0; font-family: sans-serif; margin: 0; }
         .container { width: 92%; max-width: 1400px; margin: 0 auto; }
-        
         nav { width: 100%; position: sticky; top: 0; background: rgba(10,10,10,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid #222; z-index: 100; }
         .nav-inner { padding: 25px 0; display: flex; justify-content: space-between; align-items: center; width: 92%; max-width: 1400px; margin: 0 auto; }
         .logo { color: #ffcc00; font-weight: bold; font-size: 1.4rem; letter-spacing: 2px; }
         
-        .hero { padding: 120px 0; border-bottom: 1px solid #222; }
-        .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin: 0; color: #fff; line-height: 1.1; }
-        #about-text { font-size: 1.2rem; color: #888; max-width: 800px; line-height: 1.8; margin-top: 20px; }
-
-        .category-section { margin-top: 80px; }
-        .cat-title { color: #ffcc00; border-left: 3px solid #ffcc00; padding-left: 15px; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 4px; font-size: 0.9rem; }
-        
+        /* --- 首页作品展示 --- */
+        .section-title { color: #ffcc00; border-left: 3px solid #ffcc00; padding-left: 15px; margin: 80px 0 30px; text-transform: uppercase; letter-spacing: 4px; font-size: 0.9rem; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 30px; }
         .item { background: #111; border-radius: 12px; overflow: hidden; border: 1px solid #222; transition: 0.4s; }
         .item:hover { border-color: #ffcc00; transform: translateY(-5px); }
-        .media { width: 100%; aspect-ratio: 16/9; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .media { width: 100%; aspect-ratio: 16/9; background: #000; display: flex; align-items: center; justify-content: center; }
         video, img { width: 100%; height: 100%; object-fit: cover; }
-        .info { padding: 15px; font-size: 0.9rem; color: #666; background: #161616; border-top: 1px solid #222; }
+        .info { padding: 15px; font-size: 0.9rem; color: #888; background: #161616; }
 
-        .footer-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; padding: 100px 0; border-top: 1px solid #222; margin-top: 100px; }
-        .contact-card { background: #111; padding: 30px; border-radius: 12px; border: 1px solid #222; }
-        .label { color: #ffcc00; font-size: 0.7rem; letter-spacing: 2px; display: block; margin-bottom: 10px; }
-        .val { font-size: 1.2rem; color: #fff; font-family: monospace; }
+        /* --- 弹窗逻辑 --- */
+        #portfolio-modal {
+            position: fixed; top: 100%; left: 0; width: 100%; height: 100%;
+            background: #0a0a0a; z-index: 1000; overflow-y: auto;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #portfolio-modal.active { transform: translateY(-100%); }
+        .modal-header { position: sticky; top: 0; background: rgba(10,10,10,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #222; z-index: 1001; }
         
-        .dl-btn { display: inline-block; padding: 15px 40px; border: 1px solid #ffcc00; color: #ffcc00; text-decoration: none; border-radius: 40px; font-weight: bold; transition: 0.3s; margin-top: 20px; }
-        .dl-btn:hover { background: #ffcc00; color: #000; }
-        footer { padding: 60px 0; text-align: center; color: #333; font-size: 0.8rem; }
+        /* --- 折叠分类样式 --- */
+        .accordion-item { border-bottom: 1px solid #222; }
+        .accordion-header { padding: 25px 0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+        .accordion-header:hover { color: #ffcc00; }
+        .accordion-header h3 { margin: 0; font-size: 1.1rem; letter-spacing: 1px; }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-out; }
+        .accordion-item.active .accordion-content { max-height: 2000px; padding-bottom: 40px; }
+        .accordion-item.active .arrow { transform: rotate(180deg); }
+        .arrow { transition: 0.3s; font-size: 0.8rem; }
+
+        /* --- 按钮与页脚 --- */
+        .more-btn-wrap { text-align: center; margin: 60px 0; }
+        .btn-fancy { padding: 15px 45px; border: 1px solid #444; color: #888; background: none; border-radius: 40px; cursor: pointer; transition: 0.3s; font-size: 1rem; }
+        .btn-fancy:hover { border-color: #ffcc00; color: #ffcc00; box-shadow: 0 0 20px rgba(255,204,0,0.1); }
+        
+        footer { padding: 60px 0; text-align: center; color: #333; font-size: 0.8rem; border-top: 1px solid #222; }
     </style>
 </head>
 <body>
@@ -43,85 +54,104 @@
 <nav><div class="nav-inner"><div class="logo">JLWLIMOU</div></div></nav>
 
 <div class="container">
-    <header class="hero">
-        <h1>Focus on<br>Maya Animation.</h1>
-        <p id="about-text">加载中...</p>
+    <header style="padding: 120px 0;">
+        <h1 style="font-size: clamp(2.5rem, 6vw, 4.5rem); margin: 0; line-height: 1.1;">Featured<br>Animation.</h1>
+        <p id="about-text" style="color:#888; margin-top:20px; font-size:1.1rem;"></p>
     </header>
 
-    <div id="main-content"></div>
+    <h2 class="section-title">精选作品集 / FEATURED WORKS</h2>
+    <div id="featured-grid" class="grid"></div>
 
-    <div class="footer-info">
-        <div class="contact-card">
-            <span class="label">CONTACT</span>
-            <div style="margin-bottom: 15px;">
-                <small style="color:#555">Email:</small> <span id="email-val" class="val">-</span>
-            </div>
-            <div>
-                <small style="color:#555">Phone:</small> <span id="phone-val" class="val">-</span>
-            </div>
-        </div>
-        <div class="contact-card" style="text-align: center;">
-            <span class="label">RESUME</span>
-            <a href="resume.pdf" class="dl-btn">下载个人简历 (PDF)</a>
-        </div>
+    <div class="more-btn-wrap">
+        <button class="btn-fancy" onclick="toggleModal(true)">查看更多作品集 / ALL WORKS +</button>
     </div>
 
-    <footer>&copy; 2025 JLWLIMOU. Designed for Motion.</footer>
+    <footer>&copy; 2025 JLWLIMOU.</footer>
+</div>
+
+<div id="portfolio-modal">
+    <div class="modal-header">
+        <div class="nav-inner">
+            <h2 style="margin:0; font-size:1.2rem; color:#ffcc00;">ALL WORKS</h2>
+            <button onclick="toggleModal(false)" style="background:#ffcc00; border:none; padding:8px 20px; border-radius:4px; font-weight:bold; cursor:pointer;">返回首页</button>
+        </div>
+    </div>
+    <div class="container" id="modal-accordion" style="padding-top:20px;">
+        </div>
 </div>
 
 <script>
+    let globalData = null;
+
     async function loadData() {
-        try {
-            // 加载 JSON 数据
-            const res = await fetch('data.json?t=' + Date.now());
-            if (!res.ok) throw new Error('无法读取 data.json');
-            const data = await res.json();
-            
-            // 1. 填充文本信息 (增加安全检查)
-            if (data.about) document.getElementById('about-text').innerText = data.about;
-            if (data.email) document.getElementById('email-val').innerText = data.email;
-            if (data.phone) document.getElementById('phone-val').innerText = data.phone;
+        const res = await fetch('data.json?t=' + Date.now());
+        globalData = await res.json();
+        
+        document.getElementById('about-text').innerText = globalData.about;
 
-            // 2. 渲染分类和作品
-            const container = document.getElementById('main-content');
-            container.innerHTML = ''; // 清空加载提示
+        // 1. 渲染首页精选 (筛选出 featured: true 的项目)
+        const featuredGrid = document.getElementById('featured-grid');
+        let featuredHTML = '';
+        globalData.categories.forEach(cat => {
+            cat.items.filter(i => i.featured).forEach(item => {
+                featuredHTML += renderItemHTML(item);
+            });
+        });
+        featuredGrid.innerHTML = featuredHTML || '<p style="color:#444">暂无精选作品</p>';
 
-            if (data.categories && data.categories.length > 0) {
-                data.categories.forEach(cat => {
-                    const section = document.createElement('section');
-                    section.className = 'category-section';
-                    
-                    // 生成该分类下的作品 HTML
-                    const itemsHTML = cat.items.map(item => `
-                        <div class="item">
-                            <div class="media">
-                                ${item.type === 'video' 
-                                    ? `<video src="${item.url}" loop muted playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>` 
-                                    : `<img src="${item.url}" alt="${item.title}">`}
-                            </div>
-                            <div class="info">${item.title || 'Untitled'}</div>
-                        </div>
-                    `).join('');
+        // 2. 预准备弹窗全集
+        renderAccordion();
+    }
 
-                    section.innerHTML = `
-                        <h2 class="cat-title">${cat.name}</h2>
-                        <div class="grid">${itemsHTML}</div>
-                    `;
-                    container.appendChild(section);
-                });
-            } else {
-                container.innerHTML = '<p style="text-align:center; color:#444; margin-top:50px;">作品集正在整理中...</p>';
-            }
+    function renderItemHTML(item) {
+        return `
+            <div class="item">
+                <div class="media">
+                    ${item.type === 'video' 
+                        ? `<video src="${item.url}" loop muted playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>` 
+                        : `<img src="${item.url}">`}
+                </div>
+                <div class="info">${item.title}</div>
+            </div>
+        `;
+    }
 
-        } catch (err) {
-            console.error("加载失败:", err);
-            document.getElementById('about-text').innerText = "数据加载失败，请检查 data.json 是否存在。";
+    function renderAccordion() {
+        const accordion = document.getElementById('modal-accordion');
+        accordion.innerHTML = globalData.categories.map((cat, idx) => `
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <h3>${cat.name} <small style="color:#444; margin-left:10px;">(${cat.items.length})</small></h3>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="grid">${cat.items.map(i => renderItemHTML(i)).join('')}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function toggleAccordion(header) {
+        header.parentElement.classList.toggle('active');
+    }
+
+    function toggleModal(show) {
+        const modal = document.getElementById('portfolio-modal');
+        const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+        
+        if (show) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            document.body.style.paddingRight = scrollBarWidth + 'px';
+            modal.scrollTop = 0;
+        } else {
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+            document.body.style.paddingRight = '0px';
         }
     }
 
-    // 页面加载完成后运行
     window.onload = loadData;
 </script>
-
 </body>
 </html>
