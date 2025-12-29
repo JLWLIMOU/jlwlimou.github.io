@@ -92,7 +92,6 @@
         }
     }
 
-    // 核心渲染函数：修复了丢失的列表和按钮逻辑
     function render() {
         const root = document.getElementById('root');
         const featRoot = document.getElementById('featured-master-list');
@@ -100,7 +99,6 @@
         featRoot.innerHTML = '';
 
         localData.categories.forEach((cat, cIdx) => {
-            // A. 渲染作品管理列表
             const card = document.createElement('div');
             card.className = 'cat-card';
             card.innerHTML = `
@@ -116,7 +114,6 @@
 
             const itemsContainer = document.getElementById(`items-${cIdx}`);
             cat.items.forEach((item, iIdx) => {
-                // 1. 列表管理行
                 const iRow = document.createElement('div');
                 iRow.className = 'item-row';
                 iRow.innerHTML = `
@@ -127,7 +124,6 @@
                 `;
                 itemsContainer.appendChild(iRow);
 
-                // 2. 首页精选页行 (同步渲染)
                 const fRow = document.createElement('div');
                 fRow.className = 'item-row';
                 fRow.innerHTML = `
@@ -146,12 +142,10 @@
 
         const fileExt = file.name.split('.').pop();
         const fileNameOnly = file.name.split('.').slice(0, -1).join('.');
-        
         let finalFileName = file.name;
         let counter = 1;
 
         toggleLoader(true, `正在校验文件名: ${finalFileName}`);
-        
         const token = atob(CONFIG.T1 + CONFIG.T2);
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -160,54 +154,37 @@
             const content = reader.result.split(',')[1];
             let url = `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${finalFileName}`;
             
-            // 循环检测文件名是否已存在
             let exists = true;
             while (exists) {
                 try {
-                    const checkRes = await fetch(url, {
-                        headers: { 'Authorization': `token ${token}` }
-                    });
-                    
+                    const checkRes = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
                     if (checkRes.ok) {
-                        // 如果重名，生成：文件名 (1).扩展名
                         finalFileName = `${fileNameOnly} (${counter}).${fileExt}`;
                         url = `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${finalFileName}`;
-                        toggleLoader(true, `发现重名，尝试: ${finalFileName}`);
+                        toggleLoader(true, `重名，尝试: ${finalFileName}`);
                         counter++;
-                    } else {
-                        exists = false; // 名字可用
-                    }
+                    } else { exists = false; }
                 } catch (e) { exists = false; }
             }
 
             toggleLoader(true, `正在上传: ${finalFileName}...`);
-            
             try {
                 const res = await fetch(url, {
                     method: 'PUT',
                     headers: { 'Authorization': `token ${token}` },
                     body: JSON.stringify({ message: `Upload: ${finalFileName}`, content: content })
                 });
-
                 if(res.ok) {
                     localData.categories[cIdx].items.push({ 
                         type: file.type.includes('video') ? 'video' : 'image', 
-                        url: finalFileName, 
-                        title: fileNameOnly, // 前端显示的标题不带 (1)
-                        featured: false 
+                        url: finalFileName, title: fileNameOnly, featured: false 
                     });
                     render();
                     msg(`✅ 上传成功：${finalFileName}`);
                 }
-            } catch(e) { msg("❌ 上传出错"); }
+            } catch(e) { msg("❌ 上传失败"); }
             toggleLoader(false);
             input.value = ''; 
-        };
-    }
-                render();
-                msg("✅ 上传成功！");
-            } else { msg("❌ 上传失败"); }
-            toggleLoader(false);
         };
     }
 
