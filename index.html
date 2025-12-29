@@ -6,34 +6,12 @@
     <title>JLWLIMOU | Portfolio</title>
     
     <script>
-        /**
-         * 针对“滑动到作品集”的终极解决方案：
-         * 1. 屏蔽一切平滑滚动行为
-         * 2. 在渲染前强制锁定位置
-         */
+        // 彻底解决刷新滑动感，强制静默置顶
         (function() {
             if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
-            
-            // 立即锁定位置，不给浏览器“滑动”的机会
             window.scrollTo(0, 0);
-
-            // 监听渲染，确保在所有图片和数据加载前后都死死按住滚动条
-            const killScroll = () => {
-                if (window.scrollY !== 0) {
-                    window.scrollTo({top: 0, behavior: 'instant'});
-                    requestAnimationFrame(killScroll);
-                }
-            };
-            requestAnimationFrame(killScroll);
-
-            window.addEventListener('load', () => {
-                setTimeout(() => {
-                    window.scrollTo(0, 0);
-                    document.body.classList.remove('lock-screen');
-                    // 到这一步才允许平滑滚动逻辑介入
-                    document.documentElement.style.setProperty('--scroll-type', 'smooth');
-                }, 100);
-            });
+            const forceTop = () => { if (window.scrollY !== 0) { window.scrollTo(0, 0); requestAnimationFrame(forceTop); } };
+            requestAnimationFrame(forceTop);
         })();
     </script>
     
@@ -41,32 +19,14 @@
         :root { 
             --accent: #ffcc00; 
             --bg: #0a0a0a; 
-            --ease-out: cubic-bezier(0.2, 1, 0.3, 1);
-            --scroll-type: auto; /* 初始为自动，防止滑动感 */
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* 强制置顶锁定 */
-        body.lock-screen {
-            position: fixed;
-            overflow: hidden;
-            width: 100%;
-        }
-
-        html { 
-            scrollbar-width: none; 
-            background: var(--bg); 
-            scroll-behavior: var(--scroll-type) !important; 
-        }
+        /* 基础样式 */
+        html { scrollbar-width: none; background: var(--bg); scroll-behavior: smooth; }
         html::-webkit-scrollbar { display: none; }
-        
-        body { 
-            background: var(--bg); 
-            color: #e0e0e0; 
-            font-family: system-ui, sans-serif; 
-            margin: 0; 
-            overflow-x: hidden; 
-        }
-        body.modal-open { overflow: hidden; height: 100vh; }
+        body { background: var(--bg); color: #e0e0e0; font-family: system-ui, sans-serif; margin: 0; overflow-x: hidden; }
+        body.modal-open { overflow: hidden !important; }
 
         /* 导航 */
         nav { width: 100%; position: sticky; top: 0; background: rgba(10,10,10,0.85); backdrop-filter: blur(15px); border-bottom: 1px solid #222; z-index: 9000; }
@@ -74,107 +34,121 @@
         .nav-links { display: flex; gap: 5px; }
         .nav-links a { color: #888; text-decoration: none; font-size: 0.85rem; cursor: pointer; transition: 0.3s; padding: 10px 15px; border-radius: 4px; }
         .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.05); }
-        .nav-links a.active { color: var(--accent); font-weight: bold; }
 
         .container { width: 92%; max-width: 1400px; margin: 0 auto; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
 
-        /* 原地展开修正：去除所有导致“回弹”或“先缩后放”的因素 */
-        .item { position: relative; aspect-ratio: 16/10; z-index: 1; }
-        .item-inner { 
-            position: absolute; 
-            inset: 0; 
-            background: #111; 
-            border: 1px solid #222; 
-            border-radius: 12px; 
-            overflow: hidden; 
-            transform: scale(1); /* 绝对初始值 */
-            transform-origin: center center;
-            transition: transform 0.6s var(--ease-out), border-color 0.4s;
-            will-change: transform;
+        /* 3. 高亮显示样式 */
+        section { 
+            transition: all 0.4s var(--ease-out); 
+            border: 1px solid transparent;
+            border-radius: 20px;
+            padding: 20px;
+            margin: -20px; /* 抵消padding不影响布局 */
         }
-        
-        .item.active { z-index: 999; }
-        .item.active .item-inner { 
-            border-color: var(--accent); 
-            transform: scale(1.1); /* 略微放大，确保不遮挡邻居太多 */
-            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+        section:hover { 
+            border-color: rgba(255, 204, 0, 0.3);
+            background: rgba(255, 255, 255, 0.02);
         }
 
-        .media { width: 100%; height: 100%; background: #000; pointer-events: none; }
-        .media video, .media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        /* 1. 原地放大修复 */
+        .item { position: relative; aspect-ratio: 16/10; z-index: 1; cursor: pointer; }
+        .item.active { z-index: 999; }
+        
+        .item-inner { 
+            position: absolute; inset: 0; 
+            background: #111; border: 1px solid #222; border-radius: 12px; 
+            overflow: hidden; 
+            transition: all 0.5s var(--ease-out);
+            transform: scale(1);
+        }
+        
+        .item.active .item-inner { 
+            transform: scale(1.08); 
+            border-color: var(--accent);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+        }
+
+        .media { width: 100%; height: 100%; pointer-events: none; background: #000; }
+        .media video, .media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: 0.5s; }
         .item.active .media video, .item.active .media img { object-fit: contain; }
 
         .info { 
             position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px;
             background: linear-gradient(transparent, rgba(0,0,0,0.9));
-            color: #fff; font-size: 0.9rem; text-align: center;
-            opacity: 0; transition: 0.3s;
+            color: #fff; font-size: 0.85rem; text-align: center;
+            opacity: 0; transform: translateY(10px); transition: 0.4s;
         }
-        .item.active .info { opacity: 1; }
+        .item.active .info { opacity: 1; transform: translateY(0); }
 
-        /* 弹窗层 */
-        #portfolio-modal { 
-            visibility: hidden; position: fixed; inset: 0; background: var(--bg); z-index: 10000; 
-            transform: translateY(100%); opacity: 0; 
-            transition: transform 0.5s var(--ease-out), opacity 0.3s; 
-            overflow-y: scroll;
+        /* 4. 分类展开样式修正 */
+        .accordion-content { 
+            max-height: 0; 
+            overflow: hidden; 
+            transition: max-height 0.6s var(--ease-out); 
         }
-        #portfolio-modal.active { visibility: visible; transform: translateY(0); opacity: 1; }
+        .acc-header span { transition: transform 0.4s; display: inline-block; }
+        .accordion-item.open .acc-header span { transform: rotate(45deg); color: var(--accent); }
+
+        /* 2. 弹窗丝滑滑走修复 */
+        #portfolio-modal { 
+            position: fixed; inset: 0; background: var(--bg); z-index: 10000; 
+            transform: translateY(100%); 
+            transition: transform 0.6s var(--ease-out); 
+            overflow-y: auto;
+            visibility: hidden; /* 防止未激活时遮挡点击 */
+        }
+        #portfolio-modal.active { transform: translateY(0); visibility: visible; }
     </style>
 </head>
-<body class="lock-screen">
+<body>
 
-<div id="page-wrapper">
-    <nav>
-        <div class="nav-inner">
-            <div class="logo" style="cursor:pointer; font-weight:900; letter-spacing:2px">JLWLIMOU</div>
-            <div id="smart-nav" class="nav-links">
-                <a onclick="handleNavClick('hero')">简介</a>
-                <a onclick="handleNavClick('featured')">作品</a>
-                <a onclick="handleNavClick('resume')">简历</a>
-                <a onclick="handleNavClick('contact')">联系</a>
-            </div>
+<nav>
+    <div class="nav-inner">
+        <div class="logo" style="font-weight:900; letter-spacing:2px">JLWLIMOU</div>
+        <div class="nav-links">
+            <a onclick="handleNavClick('hero')">简介</a>
+            <a onclick="handleNavClick('featured')">作品集</a>
+            <a onclick="handleNavClick('resume')">简历</a>
+            <a onclick="handleNavClick('contact')">联系</a>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <div class="container">
-        <header id="hero" style="padding: 160px 0 100px;">
-            <h1 style="font-size: clamp(2.5rem, 8vw, 5rem); margin:0; line-height:1; font-weight: 900; letter-spacing: -2px;">Focus on<br>Maya Animation.</h1>
-            <p id="about-text" style="color:#666; max-width:600px; margin-top:40px; font-size: 1.1rem; line-height: 1.8;"></p>
-        </header>
+<div class="container">
+    <header id="hero" style="padding: 160px 0 80px;">
+        <h1 style="font-size: clamp(2.5rem, 8vw, 5rem); margin:0; line-height:1; font-weight: 900; letter-spacing: -2px;">Focus on<br>Maya Animation.</h1>
+        <p id="about-text" style="color:#666; max-width:600px; margin-top:40px; font-size: 1.1rem; line-height: 1.8;"></p>
+    </header>
 
-        <section id="featured" style="padding: 40px 0; margin-bottom: 80px;">
-            <h2 style="color:var(--accent); font-size:0.75rem; letter-spacing:4px; margin-bottom:40px;">精选作品集 / FEATURED</h2>
-            <div id="featured-grid" class="grid"></div>
+    <section id="featured">
+        <h2 style="color:var(--accent); font-size:0.75rem; letter-spacing:4px; margin-bottom:40px;">精选作品 / FEATURED</h2>
+        <div id="featured-grid" class="grid"></div>
+        <div style="text-align:center; padding-top:60px;">
+            <button style="padding: 18px 40px; border: 1px solid #444; background: none; color: #fff; cursor: pointer; border-radius: 50px; font-weight: bold;" onclick="toggleModal(true)">VIEW ALL PROJECTS +</button>
+        </div>
+    </section>
+
+    <div class="grid" style="margin-top:100px; padding-bottom: 150px;">
+        <section id="resume">
+            <span style="color:var(--accent); font-size:0.7rem; display:block; margin-bottom:20px; letter-spacing:3px;">RESUME</span>
+            <a href="#" style="color:#fff; text-decoration:none; font-size:1.5rem; font-weight:bold; border-bottom:2px solid var(--accent);">DOWNLOAD CV.</a>
         </section>
-
-        <div style="text-align:center; margin-bottom: 120px;">
-            <button style="padding: 20px 50px; border: 1px solid #444; background: none; color: #fff; cursor: pointer; border-radius: 50px;" onclick="toggleModal(true)">VIEW ALL PROJECTS +</button>
-        </div>
-
-        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:30px; padding-bottom: 200px;">
-            <section id="resume" style="padding:40px; border:1px solid #222; border-radius:16px;">
-                <span style="color:var(--accent); font-size:0.7rem; display:block; margin-bottom:20px; letter-spacing:3px;">RESUME / CV</span>
-                <a href="resume.pdf" target="_blank" style="color:#fff; text-decoration:none; font-weight:bold; border-bottom:2px solid var(--accent);">DOWNLOAD PDF</a>
-            </section>
-            <section id="contact" style="padding:40px; border:1px solid #222; border-radius:16px;">
-                <span style="color:var(--accent); font-size:0.7rem; display:block; margin-bottom:20px; letter-spacing:3px;">GET IN TOUCH</span>
-                <div id="email-val" style="font-size:1.1rem; margin-bottom:10px;">-</div>
-                <div id="phone-val" style="font-size:1.1rem;">-</div>
-            </section>
-        </div>
+        <section id="contact">
+            <span style="color:var(--accent); font-size:0.7rem; display:block; margin-bottom:20px; letter-spacing:3px;">CONTACT</span>
+            <div id="email-val" style="font-size:1.2rem;">-</div>
+        </section>
     </div>
 </div>
 
 <div id="portfolio-modal">
-    <div style="position: sticky; top:0; z-index:110; background: rgba(10,10,10,0.9); backdrop-filter: blur(20px); padding: 25px; border-bottom: 1px solid #222;">
+    <div style="position: sticky; top:0; z-index:110; background: rgba(10,10,10,0.9); backdrop-filter: blur(20px); padding: 20px; border-bottom: 1px solid #222;">
         <div class="nav-inner">
-            <h2 style="margin:0; font-size:0.8rem; color:var(--accent);">FULL PROJECT LIBRARY</h2>
-            <button onclick="toggleModal(false)" style="background:var(--accent); color:#000; border:none; padding: 10px 25px; font-weight: 900; cursor: pointer;">CLOSE</button>
+            <h2 style="margin:0; font-size:0.8rem; color:var(--accent);">FULL LIBRARY</h2>
+            <button onclick="toggleModal(false)" style="background:var(--accent); color:#000; border:none; padding: 10px 20px; font-weight: 900; cursor: pointer; border-radius:4px;">CLOSE</button>
         </div>
     </div>
-    <div class="container" id="accordion-root" style="padding: 60px 0 200px;"></div>
+    <div class="container" id="accordion-root" style="padding: 40px 0 100px;"></div>
 </div>
 
 <script>
@@ -186,34 +160,9 @@
             siteData = await res.json();
             document.getElementById('about-text').innerText = siteData.about;
             document.getElementById('email-val').innerText = siteData.email;
-            document.getElementById('phone-val').innerText = siteData.phone;
             renderHome();
             renderAccordion();
-        } catch(e) { console.error("Data error"); }
-    }
-
-    function handleNavClick(id) {
-        if(document.body.classList.contains('modal-open')) toggleModal(false);
-        const el = document.getElementById(id);
-        if(!el) return;
-        const offset = (id === 'hero') ? 0 : el.offsetTop - 80;
-        window.scrollTo({ top: offset, behavior: 'smooth' });
-    }
-
-    function openAndDetail(catIdx, title) {
-        toggleModal(true);
-        setTimeout(() => {
-            const itemWrap = document.getElementById(`cat-wrapper-${catIdx}`);
-            if(!itemWrap) return;
-            if(!itemWrap.classList.contains('open')) toggleAccordion(itemWrap.querySelector('.acc-header'));
-            setTimeout(() => {
-                const target = itemWrap.querySelector(`.item[data-title="${title}"]`);
-                if(target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    setTimeout(() => handleItemClick(null, target), 500);
-                }
-            }, 300);
-        }, 600);
+        } catch(e) { console.error("Load failed"); }
     }
 
     function renderHome() {
@@ -235,13 +184,13 @@
 
     function renderAccordion() {
         document.getElementById('accordion-root').innerHTML = siteData.categories.map((cat, idx) => `
-            <div class="accordion-item" id="cat-wrapper-${idx}" style="border-bottom: 1px solid #222; margin-bottom:10px;">
-                <div class="acc-header" style="padding:35px 0; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleAccordion(this)">
-                    <h3 style="margin:0;">${cat.name}</h3>
-                    <span style="font-size:1.5rem; color:var(--accent)">+</span>
+            <div class="accordion-item" id="cat-wrapper-${idx}" style="border-bottom: 1px solid #222;">
+                <div class="acc-header" style="padding:40px 0; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleAccordion(this)">
+                    <h3 style="margin:0; font-size:1.5rem;">${cat.name}</h3>
+                    <span style="font-size:2rem;">+</span>
                 </div>
                 <div class="accordion-content">
-                    <div class="grid" style="padding-bottom:60px;">
+                    <div class="grid" style="padding-bottom:50px;">
                         ${cat.items.map(i => `
                             <div class="item" data-title="${i.title}" onclick="handleItemClick(event, this)">
                                 <div class="item-inner">
@@ -260,32 +209,69 @@
         const itemWrap = el.parentElement;
         const content = itemWrap.querySelector('.accordion-content');
         const isOpen = itemWrap.classList.contains('open');
-        itemWrap.classList.toggle('open', !isOpen);
-        content.style.maxHeight = isOpen ? '0' : content.scrollHeight + 1000 + 'px';
-        el.querySelector('span').innerText = isOpen ? '+' : '×';
-    }
+        
+        // 关闭其他（可选）
+        // document.querySelectorAll('.accordion-item').forEach(i => { i.classList.remove('open'); i.querySelector('.accordion-content').style.maxHeight = '0'; });
 
-    function toggleModal(show) {
-        const m = document.getElementById('portfolio-modal');
-        m.classList.toggle('active', show);
-        document.body.classList.toggle('modal-open', show);
-        if(!show) {
-            document.querySelectorAll('video').forEach(v => v.pause());
-            document.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
+        if(!isOpen) {
+            itemWrap.classList.add('open');
+            content.style.maxHeight = content.scrollHeight + 100 + "px";
+        } else {
+            itemWrap.classList.remove('open');
+            content.style.maxHeight = "0";
         }
     }
 
     function handleItemClick(e, el) {
         if(e) e.stopPropagation();
         const isActive = el.classList.contains('active');
+        // 先重置所有
         document.querySelectorAll('.item').forEach(i => {
             i.classList.remove('active');
             const v = i.querySelector('video'); if(v) v.pause();
         });
+        // 如果点的是未激活的，则激活
         if(!isActive) {
             el.classList.add('active');
             const v = el.querySelector('video'); if(v) v.play();
         }
+    }
+
+    function toggleModal(show) {
+        const m = document.getElementById('portfolio-modal');
+        if(show) {
+            m.classList.add('active');
+            document.body.classList.add('modal-open');
+        } else {
+            m.classList.remove('active');
+            document.body.classList.remove('modal-open');
+            // 关闭时清理状态
+            setTimeout(() => {
+                document.querySelectorAll('video').forEach(v => v.pause());
+                document.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
+            }, 600);
+        }
+    }
+
+    function openAndDetail(catIdx, title) {
+        toggleModal(true);
+        setTimeout(() => {
+            const wrap = document.getElementById(`cat-wrapper-${catIdx}`);
+            if(!wrap.classList.contains('open')) toggleAccordion(wrap.querySelector('.acc-header'));
+            setTimeout(() => {
+                const target = wrap.querySelector(`.item[data-title="${title}"]`);
+                if(target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    handleItemClick(null, target);
+                }
+            }, 400);
+        }, 600);
+    }
+
+    function handleNavClick(id) {
+        if(document.body.classList.contains('modal-open')) toggleModal(false);
+        const el = document.getElementById(id);
+        window.scrollTo({ top: el.offsetTop - 100, behavior: 'smooth' });
     }
 
     window.onload = loadData;
