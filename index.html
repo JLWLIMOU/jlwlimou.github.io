@@ -5,24 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>JLWLIMOU | Portfolio</title>
     <script>
-        // 【解决刷新停留问题】强制置顶
+        // 【核心修复：强制置顶】
         if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+        // 阻塞式置顶：在页面渲染前和渲染瞬间连续执行
         window.scrollTo(0, 0);
-        window.addEventListener('beforeunload', () => window.scrollTo(0, 0));
+        window.addEventListener('load', () => {
+            setTimeout(() => window.scrollTo(0, 0), 0);
+            document.documentElement.style.opacity = "1"; // 置顶完成后才显示内容
+        });
     </script>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; user-select: none; }
         :root { --accent: #ffcc00; --bg: #0a0a0a; --text-dim: #888; --ease-out: cubic-bezier(0.2, 1, 0.3, 1); }
 
-        html { scrollbar-width: none; background: var(--bg); scroll-behavior: smooth; }
+        /* 初始隐藏页面防止刷新时的滚动闪烁 */
+        html { scrollbar-width: none; background: var(--bg); scroll-behavior: smooth; opacity: 0; transition: opacity 0.3s ease; }
         html::-webkit-scrollbar { display: none; }
         body { background: var(--bg); color: #e0e0e0; font-family: system-ui, sans-serif; margin: 0; overflow-x: hidden; }
         body.modal-open { overflow: hidden; }
 
-        /* 导航优化：增加点击热区 */
         nav { width: 100%; position: sticky; top: 0; background: rgba(10,10,10,0.8); backdrop-filter: blur(15px); border-bottom: 1px solid #222; z-index: 9000; }
         .nav-inner { padding: 15px 0; display: flex; justify-content: space-between; align-items: center; width: 92%; max-width: 1400px; margin: 0 auto; }
-        .nav-links { display: flex; gap: 10px; }
+        .nav-links { display: flex; gap: 5px; }
         .nav-links a { 
             color: var(--text-dim); text-decoration: none; font-size: 0.85rem; cursor: pointer; 
             transition: 0.3s; padding: 10px 15px; border-radius: 4px;
@@ -33,33 +37,39 @@
         .container { width: 92%; max-width: 1400px; margin: 0 auto; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
 
-        /* 悬停高亮逻辑 */
         .highlight-target { 
-            transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease; 
+            transition: border-color 0.4s ease, box-shadow 0.4s ease; 
             border: 1px solid #222; position: relative; cursor: pointer;
         }
         .highlight-target:hover { border-color: var(--accent); box-shadow: 0 0 30px rgba(255, 204, 0, 0.1); }
-        .highlight-target.active-border { border-color: var(--accent); }
 
-        /* --- 原地展开逻辑修复 --- */
+        /* --- 原地展开逻辑修复：支持完整比例 --- */
         .item { position: relative; aspect-ratio: 16/10; z-index: 1; }
         .item-inner { 
-            position: absolute; inset: 0; background: #111; border: 1px solid #222; border-radius: 12px; 
+            position: absolute; inset: 0; background: #000; border: 1px solid #222; border-radius: 12px; 
             overflow: hidden; transition: all 0.6s var(--ease-out); 
         }
         .item.active { z-index: 100; }
         .item.active .item-inner { 
             border-color: var(--accent); 
-            transform: scale(1.1); /* 向外扩散放大 */
+            transform: scale(1.15); 
             box-shadow: 0 40px 80px rgba(0,0,0,0.9);
         }
 
-        .media { width: 100%; height: 100%; background: #000; transition: transform 0.6s var(--ease-out); }
-        /* 展开时不缩小图片，直接原地变大 */
-        .item.active .media { transform: scale(1); height: 100%; }
-        .media video, .media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .media { width: 100%; height: 100%; background: #000; }
+        .media video, .media img { 
+            width: 100%; height: 100%; 
+            object-fit: cover; /* 默认裁剪以保证网格整齐 */
+            display: block; 
+            transition: object-fit 0.4s;
+        }
         
-        /* 信息层：原地浮现 */
+        /* 【显示完整比例核心】激活时切换为 contain */
+        .item.active .media video, 
+        .item.active .media img { 
+            object-fit: contain; 
+        }
+
         .info { 
             position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px;
             background: linear-gradient(transparent, rgba(0,0,0,0.9));
@@ -68,7 +78,6 @@
         }
         .item.active .info { opacity: 1; transform: translateY(0); }
 
-        /* --- 弹窗加速 --- */
         #portfolio-modal { 
             visibility: hidden; position: fixed; inset: 0; background: var(--bg); z-index: 10000; 
             transform: translateY(60%); opacity: 0; 
@@ -83,14 +92,14 @@
         .dl-link { 
             display: inline-block; color: #fff; text-decoration: none; font-weight: bold; 
             border-bottom: 2px solid var(--accent); padding-bottom: 4px; transition: 0.3s;
-            pointer-events: auto; /* 确保可点 */
+            pointer-events: auto;
         }
         .dl-link:hover { color: var(--accent); border-color: #fff; }
     </style>
 </head>
 <body>
 
-<div id="page-wrapper" style="opacity:1">
+<div id="page-wrapper">
     <nav>
         <div class="nav-inner">
             <div class="logo" style="cursor:pointer; font-weight:900; letter-spacing:2px" onclick="handleNavClick('hero')">JLWLIMOU</div>
@@ -145,7 +154,6 @@
 <script>
     let siteData = null;
 
-    // 1. 数据与初始化
     async function loadData() {
         try {
             const res = await fetch('data.json');
@@ -158,26 +166,22 @@
         } catch(e) { console.error("Data error"); }
     }
 
-    // 2. 导航跳转：高响应度
     function handleNavClick(id) {
         const el = document.getElementById(id);
         if(!el) return;
-        
-        // 视觉立即反馈
         document.querySelectorAll('#smart-nav a').forEach(a => a.classList.remove('active'));
         document.querySelector(`[data-sec="${id}"]`)?.classList.add('active');
-
         const offset = (id === 'hero') ? 0 : el.offsetTop - 80;
         window.scrollTo({ top: offset, behavior: 'smooth' });
     }
 
-    // 3. 原地展开联动
     function openAndDetail(catIdx, title) {
         toggleModal(true);
         setTimeout(() => {
             const itemWrap = document.getElementById(`cat-wrapper-${catIdx}`);
+            if(!itemWrap) return;
             itemWrap.classList.add('open');
-            itemWrap.querySelector('.accordion-content').style.maxHeight = '5000px';
+            itemWrap.querySelector('.accordion-content').style.maxHeight = '8000px';
             setTimeout(() => {
                 const target = itemWrap.querySelector(`.item[data-title="${title}"]`);
                 if(target) {
@@ -259,7 +263,6 @@
         }
     }
 
-    // 滚动监听：导航激活态
     window.addEventListener('scroll', () => {
         if(document.body.classList.contains('modal-open')) return;
         const sections = ['hero', 'featured', 'resume', 'contact'];
