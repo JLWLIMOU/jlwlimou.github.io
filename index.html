@@ -6,26 +6,19 @@
     <title>JLWLIMOU | 3D Animator Portfolio</title>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-        
-        /* 核心修复：强制滚动条占用空间，防止抖动 */
-        html { scroll-behavior: auto !important; overflow-y: scroll; }
-        
+        html { scroll-behavior: smooth; overflow-y: scroll; }
         :root { --accent: #ffcc00; --bg: #0a0a0a; --card: #161616; }
         body { background: var(--bg); color: #e0e0e0; font-family: -apple-system, sans-serif; margin: 0; overflow-x: hidden; }
         
-        /* 刷新保护：默认隐藏，防止看到回弹过程 */
-        #main-content { 
-            display: none; 
-            opacity: 0; 
-            transition: opacity 0.8s ease; 
-        }
-        
+        #main-content { display: none; opacity: 0; transition: opacity 0.8s ease; }
         .container { width: 92%; max-width: 1400px; margin: 0 auto; }
         
+        /* 导航高亮修复 */
         nav { width: 100%; position: sticky; top: 0; background: rgba(10,10,10,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid #222; z-index: 1000; }
         .nav-inner { padding: 20px 0; display: flex; justify-content: space-between; align-items: center; width: 92%; max-width: 1400px; margin: 0 auto; }
         .logo { color: var(--accent); font-weight: bold; font-size: 1.4rem; letter-spacing: 2px; cursor: pointer; }
-        .nav-links a { color: #888; text-decoration: none; margin-left: 25px; font-size: 0.9rem; transition: 0.3s; }
+        .nav-links a { color: #888; text-decoration: none; margin-left: 25px; font-size: 0.9rem; transition: 0.3s ease; }
+        .nav-links a:hover { color: var(--accent); text-shadow: 0 0 10px rgba(255,204,0,0.4); }
 
         .hero { padding: 120px 0; border-bottom: 1px solid #222; }
         .hero h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin: 0; color: #fff; line-height: 1.1; }
@@ -38,39 +31,48 @@
             position: absolute; top: 0; left: 0; width: 100%;
             background: #111; border: 1px solid #222; border-radius: 12px;
             overflow: hidden; 
-            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1); 
+            transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1); 
             z-index: 10;
-            transform-origin: center center;
         }
-        .media { width: 100%; height: 250px; background: #000; transition: height 0.5s ease; }
+        .media { width: 100%; height: 250px; background: #000; transition: height 0.6s ease; }
         .media img, .media video { width: 100%; height: 100%; display: block; object-fit: contain; background: #000; pointer-events: none; }
         .info { padding: 15px; font-size: 0.85rem; color: #666; background: #161616; text-align: center; }
 
-        /* 统一悬停效果 */
         @media (hover: hover) {
             .item:not(.active):hover .item-inner { 
-                transform: scale(1.03); 
-                z-index: 50; 
-                border-color: var(--accent); 
+                transform: scale(1.03); z-index: 50; border-color: var(--accent); 
                 box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
             }
         }
 
-        /* 放大预览动画（弹窗专用） */
+        /* 放大动画：增加深度与平滑度 */
         #accordion-root .item.active { z-index: 1001; }
         #accordion-root .item.active .item-inner {
-            transform: scale(1.04) translateY(-80px); /* 向上轻微平移，不推开布局 */
+            transform: scale(1.05) translateY(-40px);
             width: 100%; 
-            box-shadow: 0 40px 100px rgba(0,0,0,0.9);
+            box-shadow: 0 50px 120px rgba(0,0,0,1);
             border-color: var(--accent);
             z-index: 1001;
         }
-        #accordion-root .item.active .media { height: 480px; }
+        #accordion-root .item.active .media { height: 500px; }
+
+        /* 分类展开动画：CSS高度转场 */
+        .accordion-content {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+        .accordion-content.open {
+            grid-template-rows: 1fr;
+            padding-bottom: 80px;
+        }
+        .accordion-inner { min-height: 0; }
 
         #portfolio-modal { 
             position: fixed; top: 100%; left: 0; width: 100%; height: 100%; 
             background: var(--bg); z-index: 2000; overflow-y: auto; 
-            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); 
+            transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1); 
             overscroll-behavior: contain;
         }
         #portfolio-modal.active { transform: translateY(-100%); }
@@ -82,6 +84,8 @@
         .dl-btn:hover { background: var(--accent); color: #000; }
         
         footer { padding: 40px 0; text-align: center; color: #333; font-size: 0.8rem; border-top: 1px solid #222; }
+        
+        .arrow { transition: transform 0.4s ease; display: inline-block; }
     </style>
 </head>
 <body onclick="clearActiveItems(event)">
@@ -140,10 +144,7 @@
 </div>
 
 <script>
-    // 强制禁用滚动恢复
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-    
-    // 初始化立即置顶
     window.scrollTo(0, 0);
 
     let siteData = null;
@@ -153,7 +154,6 @@
             const res = await fetch('data.json?t=' + Date.now());
             siteData = await res.json();
             
-            // 填充内容
             document.getElementById('about-text').innerText = siteData.about;
             document.getElementById('email-val').innerText = siteData.email;
             document.getElementById('phone-val').innerText = siteData.phone;
@@ -161,27 +161,21 @@
             const fGrid = document.getElementById('featured-grid');
             let fHtml = '';
             
-            // 给数据生成唯一ID（如果JSON里没有）
             siteData.categories.forEach((cat, cIdx) => {
                 cat.items.forEach((item, iIdx) => {
                     item.unique_id = `item-${cIdx}-${iIdx}`;
-                    if (item.featured) {
-                        fHtml += renderItem(item, 'featured', item.unique_id);
-                    }
+                    if (item.featured) fHtml += renderItem(item, 'featured', item.unique_id);
                 });
             });
             
             fGrid.innerHTML = fHtml || '<p>暂无精选作品</p>';
             renderAccordion();
 
-            // 核心修复：等所有DOM渲染后再显示并置顶
             setTimeout(() => {
                 window.scrollTo(0, 0);
                 const main = document.getElementById('main-content');
                 main.style.display = 'block';
-                setTimeout(() => {
-                    main.style.opacity = '1';
-                }, 10);
+                setTimeout(() => { main.style.opacity = '1'; }, 10);
             }, 100);
 
         } catch(e) { console.error("Data Load Error", e); }
@@ -205,7 +199,7 @@
     function handleItemClick(e, el, context, id) {
         e.stopPropagation();
         if (context === 'featured') {
-            toggleModal(true, id); // 传入唯一 ID
+            toggleModal(true, id);
         } else {
             const isActive = el.classList.contains('active');
             clearActiveItems();
@@ -233,8 +227,10 @@
                     <h3 style="margin:0;">${cat.name}</h3>
                     <span class="arrow">▼</span>
                 </div>
-                <div class="accordion-content" style="display:none; padding-bottom:50px;">
-                    <div class="grid">${cat.items.map(i => renderItem(i, 'modal', i.unique_id)).join('')}</div>
+                <div class="accordion-content">
+                    <div class="accordion-inner">
+                        <div class="grid" style="padding: 30px 0;">${cat.items.map(i => renderItem(i, 'modal', i.unique_id)).join('')}</div>
+                    </div>
                 </div>
             </div>
         `).join('');
@@ -243,12 +239,13 @@
     function toggleAccordion(el, forceOpen = false) {
         const content = el.nextElementSibling;
         const arrow = el.querySelector('.arrow');
+        
         if (forceOpen) {
-            content.style.display = 'block';
+            content.classList.add('open');
             arrow.style.transform = 'rotate(180deg)';
         } else {
-            const isOpen = content.style.display === 'block';
-            content.style.display = isOpen ? 'none' : 'block';
+            const isOpen = content.classList.contains('open');
+            content.classList.toggle('open', !isOpen);
             arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
             clearActiveItems();
         }
@@ -260,33 +257,33 @@
         
         if (show) {
             m.scrollTop = 0;
-            // 引导功能核心实现
             if (targetId) {
+                // 引导逻辑：串联转场动画
                 setTimeout(() => {
                     const targetEl = m.querySelector(`.item[data-id="${targetId}"]`);
                     if (targetEl) {
-                        // 1. 展开父级分类
-                        const parentAccordion = targetEl.closest('.accordion-item').querySelector('.accordion-header');
-                        toggleAccordion(parentAccordion, true);
+                        const parentHeader = targetEl.closest('.accordion-item').querySelector('.accordion-header');
                         
-                        // 2. 放大并播放
-                        targetEl.classList.add('active');
-                        const v = targetEl.querySelector('video');
-                        if (v) v.play();
-
-                        // 3. 平滑滚动到视野
+                        // 1. 先平滑展开分类
+                        toggleAccordion(parentHeader, true);
+                        
+                        // 2. 延迟执行卡片放大，等待分类展开动画完成一部分
                         setTimeout(() => {
+                            targetEl.classList.add('active');
+                            const v = targetEl.querySelector('video');
+                            if (v) v.play();
+                            
+                            // 3. 滚动到中心
                             targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }, 300);
+                        }, 500); 
                     }
-                }, 500); // 确保在弹窗推入动画完成后执行
+                }, 700); // 等待弹窗完全进入
             }
         } else {
             clearActiveItems();
         }
     }
 
-    // 简历下载逻辑
     document.getElementById('resume-dl').addEventListener('click', async function() {
         const btn = this; btn.innerText = "准备中...";
         try {
