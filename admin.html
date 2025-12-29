@@ -119,12 +119,11 @@
         const file = input.files[0];
         if(!file) return;
 
-        // 大文件提醒
         if(file.size > 20 * 1024 * 1024) {
             alert("文件超过 20MB，GitHub 传输可能会非常慢，建议先压缩！");
         }
 
-        toggleLoader(true, `正在读取本地文件: ${file.name}`);
+        toggleLoader(true, `正在检查文件状态: ${file.name}`);
         
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -133,36 +132,57 @@
             const content = reader.result.split(',')[1];
             const url = `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${file.name}`;
             
-            toggleLoader(true, `正在向 GitHub 传输 (请勿刷新)...`);
+            let sha = null;
+            try {
+                // 第一步：尝试获取旧文件的 SHA（以防文件已存在）
+                const checkRes = await fetch(url, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+                if (checkRes.ok) {
+                    const existingFile = await checkRes.json();
+                    sha = existingFile.sha;
+                    toggleLoader(true, "发现同名文件，正在准备覆盖...");
+                }
+            } catch (e) { /* 文件不存在，sha 保持 null */ }
+
+            toggleLoader(true, `正在上传至 GitHub...`);
             
             try {
+                // 第二步：执行上传（如果 sha 有值，则为更新；没值，则为新建）
                 const res = await fetch(url, {
                     method: 'PUT',
                     headers: { 'Authorization': `token ${token}` },
-                    body: JSON.stringify({ message: `Upload ${file.name}`, content: content })
+                    body: JSON.stringify({ 
+                        message: `Upload ${file.name}`, 
+                        content: content,
+                        sha: sha // 核心修复：带上这个参数
+                    })
                 });
 
                 if(res.ok) {
-                    localData.categories[cIdx].items.push({ 
-                        type: file.type.includes('video') ? 'video' : 'image', 
-                        url: file.name, 
-                        title: file.name.split('.')[0], 
-                        featured: false 
-                    });
+                    // 检查是否已经在 localData 中存在该 url，避免重复添加列表项
+                    const isExist = localData.categories[cIdx].items.some(i => i.url === file.name);
+                    if (!isExist) {
+                        localData.categories[cIdx].items.push({ 
+                            type: file.type.includes('video') ? 'video' : 'image', 
+                            url: file.name, 
+                            title: file.name.split('.')[0], 
+                            featured: false 
+                        });
+                    }
                     render();
-                    msg("✅ 上传成功！别忘了最后保存。");
+                    msg("✅ 上传并更新成功！别忘了最后保存。");
                 } else {
                     const err = await res.json();
                     msg("❌ 上传失败: " + err.message);
                 }
             } catch(e) {
-                msg("❌ 网络异常，请检查科学上网环境");
+                msg("❌ 网络异常，请检查网络环境");
             }
             toggleLoader(false);
-            input.value = ''; // 清空选择
+            input.value = ''; 
         };
     }
-
     async function save() {
         toggleLoader(true, "正在保存网站结构...");
         const token = atob(CONFIG.T1 + CONFIG.T2);
