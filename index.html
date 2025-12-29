@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>JLWLIMOU | 作品集库 Portfolio Library</title>
+    <title>JLWLIMOU | 作品集库 Portfolio</title>
     <style>
         :root {
             --accent: #ffcc00;
             --bg: #050505;
-            --drawer-bg: #0a0a0a;
-            --panel: #141414;
+            --drawer-bg: #080808;
+            --panel: #111;
             --text: #ffffff;
             --text-dim: #666;
-            --ease: cubic-bezier(0.19, 1, 0.22, 1);
+            --ease: cubic-bezier(0.25, 1, 0.5, 1); /* 更轻快的曲线 */
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -22,85 +22,80 @@
             overflow-x: hidden; user-select: none;
         }
 
-        /* --- 导航 --- */
+        /* --- 导航与基础 --- */
         nav {
             position: fixed; top: 0; width: 100%; z-index: 1000;
             padding: 18px 5%; display: flex; justify-content: space-between; align-items: center;
-            background: rgba(5,5,5,0.85); backdrop-filter: blur(20px);
+            background: rgba(5,5,5,0.8); backdrop-filter: blur(15px);
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .logo { font-weight: 900; letter-spacing: 2px; cursor: pointer; font-size: 1.1rem; }
-        .nav-links a { color: var(--text-dim); text-decoration: none; font-size: 0.8rem; margin-left: 20px; cursor: pointer; transition: 0.3s; }
-        .nav-links a:hover { color: var(--accent); }
-
-        /* --- 英雄区 --- */
-        .hero { height: 50vh; display: flex; flex-direction: column; justify-content: center; padding: 0 10%; }
-        .hero h1 { font-size: clamp(2.5rem, 8vw, 4rem); margin: 0; line-height: 1.1; font-weight: 850; letter-spacing: -1px; }
-        .hero p { color: var(--text-dim); max-width: 500px; margin-top: 15px; font-size: 0.95rem; line-height: 1.6; }
-
-        .container { padding: 0 5% 100px; }
-        .section-header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            margin-bottom: 30px; border-bottom: 1px solid #222; padding-bottom: 10px;
-        }
+        .logo { font-weight: 900; letter-spacing: 2px; cursor: pointer; }
         .lib-trigger {
-            background: var(--accent); color: #000; padding: 10px 24px; border-radius: 4px;
-            font-size: 0.75rem; font-weight: 900; cursor: pointer; transition: 0.3s;
+            background: var(--accent); color: #000; padding: 10px 20px; border-radius: 4px;
+            font-size: 0.75rem; font-weight: 800; cursor: pointer; border: none;
         }
-        .lib-trigger:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(255,204,0,0.2); }
 
         /* --- 主网格 --- */
+        .hero { height: 50vh; display: flex; flex-direction: column; justify-content: center; padding: 0 10%; }
+        .hero h1 { font-size: clamp(2.5rem, 8vw, 4.5rem); margin: 0; font-weight: 850; letter-spacing: -1px; }
+        
+        .container { padding: 0 5% 100px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
         .card {
             background: var(--panel); border-radius: 8px; overflow: hidden;
-            aspect-ratio: 16/9; cursor: pointer; position: relative; transition: 0.4s var(--ease);
+            aspect-ratio: 16/9; cursor: pointer; position: relative;
         }
-        .card:hover { transform: translateY(-5px); }
         .card img, .card video { width: 100%; height: 100%; object-fit: cover; }
-        .card-info {
-            position: absolute; inset: 0; padding: 20px;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent 60%);
-            display: flex; align-items: flex-end; opacity: 0; transition: 0.3s;
-        }
-        .card:hover .card-info { opacity: 1; }
 
-        /* --- 全库全屏层 (The Library Overlay) --- */
+        /* --- 全库覆盖层 --- */
         #library-overlay {
             position: fixed; inset: 0; background: var(--drawer-bg); z-index: 2000;
-            transform: translateY(100%); transition: transform 0.6s var(--ease);
+            transform: translateY(100%); transition: transform 0.5s var(--ease);
             overflow-y: auto; padding: 100px 5% 50px;
         }
         #library-overlay.active { transform: translateY(0); }
-        .close-lib { position: fixed; top: 25px; right: 5%; z-index: 2100; cursor: pointer; color: var(--accent); font-weight: 900; }
+        .close-lib { position: fixed; top: 25px; right: 5%; z-index: 2100; cursor: pointer; color: var(--accent); font-weight: 900; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px;}
 
-        /* --- 折叠分类逻辑 --- */
-        .cat-box { border-bottom: 1px solid #1a1a1a; margin-bottom: 10px; }
+        /* --- 核心：不可能卡顿的折叠逻辑 --- */
+        .cat-box { margin-bottom: 15px; background: rgba(255,255,255,0.02); border-radius: 12px; overflow: hidden; }
         .cat-header { 
-            padding: 25px 0; display: flex; justify-content: space-between; align-items: center; 
-            cursor: pointer; transition: 0.3s;
+            padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; 
+            cursor: pointer; transition: background 0.3s;
         }
-        .cat-header:hover h3 { color: var(--accent); }
-        .cat-header h3 { margin: 0; font-size: 1.4rem; letter-spacing: 1px; }
-        .cat-header .status { font-size: 0.8rem; color: var(--text-dim); }
+        .cat-header:hover { background: rgba(255,255,255,0.05); }
+        .cat-header h3 { margin: 0; font-size: 1.2rem; }
+        .cat-header .icon { transition: transform 0.4s var(--ease); color: var(--accent); font-weight: bold; }
 
+        /* 重点：避免重排动画 */
         .cat-content { 
-            max-height: 0; overflow: hidden; transition: max-height 0.5s var(--ease);
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;
+            display: none; /* 默认隐藏 */
+            padding: 0 25px 25px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;
+            opacity: 0;
+            transform: translateY(10px);
         }
-        .cat-box.open .cat-content { max-height: 2000px; padding-bottom: 30px; }
-        .cat-box.open .status::after { content: " [ 收起 - ]"; color: var(--accent); }
-        .cat-box:not(.open) .status::after { content: " [ 展开 + ]"; }
 
-        /* 库内小卡片 */
-        .lib-item {
-            display: flex; gap: 12px; background: #0f0f0f; padding: 10px; border-radius: 6px; cursor: pointer;
-            transition: 0.3s; border: 1px solid transparent;
+        /* 展开状态 */
+        .cat-box.open .cat-content { 
+            display: grid; 
+            animation: slideIn 0.4s var(--ease) forwards;
         }
-        .lib-item:hover { background: #1a1a1a; border-color: #333; }
-        .lib-thumb { width: 90px; height: 55px; background: #222; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+        .cat-box.open .icon { transform: rotate(180deg); }
+
+        @keyframes slideIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 库内项 */
+        .lib-item {
+            display: flex; gap: 12px; background: #151515; padding: 10px; border-radius: 8px; cursor: pointer;
+            transition: 0.2s;
+        }
+        .lib-item:hover { background: #222; transform: scale(1.02); }
+        .lib-thumb { width: 90px; height: 55px; background: #000; border-radius: 4px; overflow: hidden; flex-shrink: 0; }
         .lib-thumb img, .lib-thumb video { width: 100%; height: 100%; object-fit: cover; }
-        .lib-meta b { font-size: 0.85rem; display: block; margin-top: 5px; }
-        .lib-meta span { font-size: 0.65rem; color: var(--text-dim); }
+        .lib-meta b { font-size: 0.85rem; display: block; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .lib-meta span { font-size: 0.6rem; color: var(--text-dim); letter-spacing: 1px; }
 
         /* --- 播放器 --- */
         #viewer {
@@ -109,18 +104,10 @@
         }
         #viewer.active { display: flex; opacity: 1; }
         .viewer-box video, .viewer-box img { max-width: 95vw; max-height: 85vh; object-fit: contain; }
-        .viewer-close { position: absolute; top: 30px; right: 40px; font-size: 2rem; cursor: pointer; color: #fff; }
+        .viewer-close { position: absolute; top: 30px; right: 40px; font-size: 2.5rem; cursor: pointer; color: #fff; }
 
         footer { padding: 80px 10%; border-top: 1px solid #111; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
         .big-link { font-size: 1.5rem; font-weight: 800; color: #fff; text-decoration: none; display: block; margin-bottom: 8px; }
-        .big-link:hover { color: var(--accent); }
-
-        @media (max-width: 768px) {
-            .hero { height: 40vh; }
-            .grid { grid-template-columns: 1fr; }
-            footer { grid-template-columns: 1fr; }
-            #library-overlay { padding-top: 80px; }
-        }
     </style>
 </head>
 <body>
@@ -128,39 +115,35 @@
 <nav>
     <div class="logo" onclick="location.reload()">JLWLIMOU</div>
     <div class="nav-links">
-        <a onclick="scrollToSection('featured')">精选作品</a>
-        <a onclick="scrollToSection('contact')">联系方式</a>
+        <button class="lib-trigger" onclick="toggleLibrary(true)">作品库 LIBRARY</button>
     </div>
 </nav>
 
 <section class="hero">
-    <h1>聚焦 Maya 动画渲染<br><span style="color:var(--text-dim)">ANIMATION PORTFOLIO.</span></h1>
-    <p id="about-text">加载中...</p>
+    <h1>Maya 动画作品集<br><span style="color:var(--text-dim)">ANIMATION PORTFOLIO.</span></h1>
+    <p id="about-text">加载简介中...</p>
 </section>
 
-<div class="container" id="featured">
-    <div class="section-header">
-        <h2 style="font-size:0.7rem; letter-spacing:4px; color:var(--text-dim);">SELECTED精选展示</h2>
-        <div class="lib-trigger" onclick="toggleLibrary(true)">打开作品库 OPEN LIBRARY</div>
-    </div>
+<div class="container">
+    <h2 style="font-size:0.7rem; letter-spacing:4px; color:var(--text-dim); margin-bottom:20px;">SELECTED 精选作品</h2>
     <div id="featured-grid" class="grid"></div>
 </div>
 
 <footer id="contact">
     <div>
-        <span style="color:var(--accent); font-size:0.7rem; letter-spacing:2px;">RESUME</span>
-        <a href="resume.pdf" download class="big-link">下载简历 CV</a>
+        <span style="color:var(--accent); font-size:0.7rem; letter-spacing:2px;">RESUME 简历</span>
+        <a href="resume.pdf" download class="big-link">下载下载 CV / PDF</a>
         <p id="exp-text" style="color:var(--text-dim); font-size:0.9rem;"></p>
     </div>
     <div>
-        <span style="color:var(--accent); font-size:0.7rem; letter-spacing:2px;">CONTACT</span>
+        <span style="color:var(--accent); font-size:0.7rem; letter-spacing:2px;">CONTACT 联系</span>
         <a id="email-link" href="#" class="big-link">发送邮件 EMAIL</a>
-        <p id="phone-val" style="color:var(--text-dim); font-size:1rem;"></p>
+        <p id="phone-val" style="color:var(--text-dim); font-size:1.1rem;"></p>
     </div>
 </footer>
 
 <div id="library-overlay">
-    <div class="close-lib" onclick="toggleLibrary(false)">[ 关闭 CLOSE ]</div>
+    <div class="close-lib" onclick="toggleLibrary(false)">关闭 CLOSE</div>
     <div id="library-content"></div>
 </div>
 
@@ -189,35 +172,32 @@
         let featHtml = '';
         let libHtml = '';
 
-        // 预处理：提取所有精选作品作为一个特殊的“第一个分类”
-        const featuredCategory = { name: "⭐ 精选推荐 FEATURED", items: [], defaultOpen: true };
+        const featuredCategory = { name: "⭐ 精选推荐 FEATURED", items: [] };
         
         siteData.categories.forEach(cat => {
             cat.items.forEach(item => {
                 if(item.featured) {
                     featuredCategory.items.push(item);
-                    // 首页展示
                     featHtml += `
                         <div class="card" onclick="openViewer('${item.url}', '${item.type}')">
                             ${item.type === 'video' ? `<video src="${item.url}" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>` : `<img src="${item.url}">`}
-                            <div class="card-info"><b>${item.title}</b></div>
                         </div>`;
                 }
             });
         });
 
-        // 库内容生成：将精选排在第一位，然后是原有的分类
         const allCats = [featuredCategory, ...siteData.categories];
 
         allCats.forEach((cat, index) => {
-            // 策略：精选和前1个分类默认展开，其他收起
+            // 重点：第一和第二个默认 open，其他的保持关闭。
+            // 使用 display:none 确保初始加载时不占算力
             const isOpen = (index <= 1) ? 'open' : '';
             
             libHtml += `
                 <div class="cat-box ${isOpen}">
                     <div class="cat-header" onclick="this.parentElement.classList.toggle('open')">
                         <h3>${cat.name}</h3>
-                        <span class="status">${cat.items.length} PROJECTS</span>
+                        <span class="icon">▼</span>
                     </div>
                     <div class="cat-content">
                         ${cat.items.map(i => `
@@ -261,10 +241,6 @@
             v.style.display = 'none';
             document.getElementById('viewer-media').innerHTML = '';
         }, 400);
-    }
-
-    function scrollToSection(id) {
-        document.getElementById(id).scrollIntoView({behavior:'smooth'});
     }
 
     window.onload = init;
