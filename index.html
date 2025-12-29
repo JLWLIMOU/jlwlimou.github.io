@@ -198,6 +198,16 @@
     }
 
     window.onload = loadData;
-</script>
+</script>// 1. 强制浏览器在刷新时不记录之前的滚动位置
+if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+}
+
+// 2. 页面加载完成后，强制滚动到顶部（简介栏所在位置）
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        window.scrollTo(0, 0);
+    }, 10); // 极短的延迟确保在所有元素渲染后执行
+});
 </body>
 </html>
