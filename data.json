@@ -7,18 +7,35 @@
           "type": "image",
           "url": "6ecf8f60e0f1eca89662b4da47f9f71d.jpg",
           "title": "马",
-          "featured": true
+          "featured": false
         },
         {
           "type": "image",
           "url": "9A0390F02AEEE5DBF0B9D18CFE94EC63 (1).jpg",
           "title": "IP设计",
-          "featured": true
+          "featured": false
         },
         {
           "type": "image",
           "url": "7F5E747A3F55B2C0EAC2BD577FC13419 (1).jpg",
           "title": "IP设计",
+          "featured": true
+        }
+      ]
+    },
+    {
+      "name": "练习",
+      "items": [
+        {
+          "type": "image",
+          "url": "01.jpg",
+          "title": "01",
+          "featured": true
+        },
+        {
+          "type": "image",
+          "url": "IP.jpg",
+          "title": "IP",
           "featured": true
         }
       ]
