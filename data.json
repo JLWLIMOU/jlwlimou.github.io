@@ -3,19 +3,26 @@
     {
       "id": "cat_1",
       "name": "动画短片",
-      "items": [
-        {"type": "video", "url": "work1.mp4", "title": "练习作品 01"}
-      ]
+      "items": []
     },
     {
       "id": "cat_2",
       "name": "小练习",
       "items": [
-        {"type": "image", "url": "render1.jpg", "title": "渲染练习 01"}
+        {
+          "type": "image",
+          "url": "render1.jpg",
+          "title": "渲染练习 01"
+        }
       ]
+    },
+    {
+      "id": "cat_1767000325016",
+      "name": "新建分类",
+      "items": []
     }
   ],
   "email": "jlwlimou@qq.com",
-  "phone": "+86 138-0000-0000",
+  "phone": "13627208879",
   "about": "我是 JLWLIMOU。致力于三维动画的运动规律学习与 Maya 技术探索。"
 }
