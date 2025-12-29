@@ -94,8 +94,17 @@
         .lib-cat-title { font-size: 0.75rem; letter-spacing: 3px; color: var(--accent); font-weight: 800; text-transform: uppercase; }
         .lib-cat-icon { color: var(--text-dim); font-family: monospace; font-size: 1rem; }
         
-        .lib-cat-content { max-height: 0; overflow: hidden; transition: max-height 0.6s var(--ease); }
-        .lib-cat-content.expanded { max-height: 8000px; margin-bottom: 40px; }
+        /* 修改后的折叠容器：性能最优 */
+.lib-cat-content { 
+    display: none; /* 直接隐藏，不占用任何渲染资源 */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.lib-cat-content.expanded { 
+    display: block; /* 显示 */
+    opacity: 1;
+    margin-bottom: 40px;
+}
 
         /* --- 查看器 --- */
         #viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 3000; display: none; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
@@ -207,8 +216,19 @@
     function toggleCategory(id) {
         const content = document.getElementById(`cat-content-${id}`);
         const icon = document.getElementById(`cat-icon-${id}`);
-        const isExpanded = content.classList.toggle('expanded');
-        icon.innerText = isExpanded ? '[-]' : '[+]';
+        
+        // 如果当前是显示的，就隐藏
+        if (content.style.display === 'block') {
+            content.style.display = 'none';
+            content.style.opacity = '0';
+            icon.innerText = '[+]';
+        } else {
+            // 如果当前是隐藏的，就显示
+            content.style.display = 'block';
+            // 微小延迟触发淡入效果
+            setTimeout(() => { content.style.opacity = '1'; }, 10);
+            icon.innerText = '[-]';
+        }
     }
 
     function render() {
@@ -232,7 +252,7 @@
                 <span class="lib-cat-title">SELECTED 精选系列</span>
                 <span class="lib-cat-icon" id="cat-icon-featured">[-]</span>
             </div>
-            <div class="lib-cat-content expanded" id="cat-content-featured">
+            <div class="lib-cat-content" id="cat-content-featured" style="display:block; opacity:1;">
                 <div class="grid">
                     ${featItems.map(i => createCardHtml(i)).join('')}
                 </div>
