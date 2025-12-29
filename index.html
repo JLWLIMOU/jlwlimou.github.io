@@ -6,23 +6,23 @@
     <title>JLWLIMOU | 3D Animator Portfolio</title>
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-        
         :root { --accent: #ffcc00; --bg: #0a0a0a; --card: #161616; --text-dim: #888; }
 
-        /* 4. 滚动条重新设计 - 悬停触发显示 */
+        /* 4. 滚动条：悬停时平滑渐变显示 */
         html { scrollbar-width: none; scroll-behavior: smooth; }
         body::-webkit-scrollbar { width: 6px; }
         body::-webkit-scrollbar-track { background: transparent; }
-        body::-webkit-scrollbar-thumb { background: transparent; border-radius: 10px; }
-
-        /* 鼠标靠近右侧边缘时显示滚动条 */
-        #scroll-detector {
-            position: fixed; right: 0; top: 0; width: 30px; height: 100%; z-index: 9999; pointer-events: auto;
+        body::-webkit-scrollbar-thumb { 
+            background: transparent; 
+            border-radius: 10px; 
+            transition: background 0.5s ease; /* 渐变效果 */
         }
-        #scroll-detector:hover ~ #page-wrapper body::-webkit-scrollbar-thumb,
-        body.is-hovering-right::-webkit-scrollbar-thumb,
-        body.scrolling::-webkit-scrollbar-thumb { 
-            background: rgba(255, 204, 0, 0.4); 
+        /* 仅在鼠标悬停在 body 且靠近右侧时，或滚动时显示 */
+        body:hover::-webkit-scrollbar-thumb { 
+            background: rgba(255, 204, 0, 0.2); 
+        }
+        body::-webkit-scrollbar-thumb:hover { 
+            background: var(--accent) !important; 
         }
 
         body { 
@@ -31,20 +31,7 @@
             margin: 0; overflow-x: hidden;
         }
 
-        /* 下拉刷新 */
-        #pull-to-refresh {
-            position: fixed; top: -75px; left: 0; width: 100%; height: 70px;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 5000; pointer-events: none; transition: top 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-        .spinner {
-            width: 28px; height: 28px; border: 2px solid rgba(255,204,0,0.1);
-            border-top: 2px solid var(--accent); border-radius: 50%;
-        }
-        .spinning { animation: spin 0.8s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        /* 1. 导航与边框高亮 */
+        /* 1. 导航与边框联动样式 */
         nav { width: 100%; position: sticky; top: 0; background: rgba(10,10,10,0.8); backdrop-filter: blur(15px); border-bottom: 1px solid #222; z-index: 1000; }
         .nav-inner { padding: 18px 0; display: flex; justify-content: space-between; align-items: center; width: 92%; max-width: 1400px; margin: 0 auto; }
         .logo { color: var(--accent); font-weight: 800; font-size: 1.2rem; letter-spacing: 3px; cursor: pointer; }
@@ -59,36 +46,57 @@
             background: var(--accent); box-shadow: 0 0 10px var(--accent);
         }
 
-        /* 边框高亮类 */
-        .footer-card { transition: all 0.4s ease; border: 1px solid #222; }
-        .footer-card.highlight-border { border-color: var(--accent); box-shadow: 0 0 20px rgba(255, 204, 0, 0.15); transform: translateY(-5px); }
+        /* 边框高亮：联动右上角访问 */
+        .footer-card { transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); border: 1px solid #222; }
+        .footer-card.highlight-border { 
+            border-color: var(--accent) !important; 
+            box-shadow: 0 0 25px rgba(255, 204, 0, 0.2); 
+            transform: translateY(-5px);
+        }
 
-        /* 布局 */
+        /* 布局与微放大 */
         .container { width: 92%; max-width: 1400px; margin: 0 auto; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 40px; }
         
-        /* 作品卡片动画 */
-        .item { position: relative; height: 320px; cursor: pointer; transition: 0.3s; }
+        .item { position: relative; height: 320px; cursor: pointer; }
         .item-inner {
             position: absolute; width: 100%; background: #111; border: 1px solid #222; 
             border-radius: 12px; overflow: hidden; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
             z-index: 1;
         }
+        /* 2. 悬停略微放大 */
+        .item:hover .item-inner { transform: scale(1.02); border-color: #444; }
+
+        /* 3. 点击激活后的强制放大状态 */
         .item.active { z-index: 100; }
-        .item.active .item-inner { transform: scale(1.05) translateY(-20px); border-color: var(--accent); box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+        .item.active .item-inner { 
+            transform: scale(1.06) translateY(-10px) !important; 
+            border-color: var(--accent) !important; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8); 
+        }
         .item.active .media { height: 400px; }
 
         .media { width: 100%; height: 250px; background: #000; overflow: hidden; transition: height 0.5s ease; }
         .media video, .media img { width: 100%; height: 100%; object-fit: contain; }
         .info { padding: 15px; font-size: 0.85rem; color: #666; text-align: center; }
 
-        /* 弹窗 */
+        /* 弹窗样式 */
         #portfolio-modal { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg); z-index: 2000; transform: translateY(100%);
             transition: transform 0.6s cubic-bezier(0.32, 1, 0.23, 1); overflow-y: scroll;
         }
         #portfolio-modal.active { display: block; transform: translateY(0); }
+
+        /* 下拉刷新 */
+        #pull-to-refresh {
+            position: fixed; top: -75px; left: 0; width: 100%; height: 70px;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 5000; pointer-events: none; transition: top 0.3s ease;
+        }
+        .spinner { width: 28px; height: 28px; border: 2px solid rgba(255,204,0,0.1); border-top: 2px solid var(--accent); border-radius: 50%; }
+        .spinning { animation: spin 0.8s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         .dl-btn { display: inline-block; padding: 12px 28px; border: 1px solid #444; color: #888; border-radius: 4px; font-weight: bold; cursor: pointer; background: transparent; transition: 0.3s; font-size: 0.8rem; }
         .dl-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -99,9 +107,7 @@
         .section-title { color: var(--accent); border-left: 2px solid var(--accent); padding-left: 15px; margin: 120px 0 40px; text-transform: uppercase; letter-spacing: 4px; font-size: 0.75rem; font-weight: 600; }
     </style>
 </head>
-<body onmousemove="checkScrollArea(event)">
-
-<div id="scroll-detector"></div>
+<body>
 
 <div id="pull-to-refresh"><div class="spinner" id="refresh-spinner"></div></div>
 
@@ -163,32 +169,7 @@
     const spinner = document.getElementById('refresh-spinner');
     const pullEl = document.getElementById('pull-to-refresh');
 
-    // --- 滚动条检测 ---
-    function checkScrollArea(e) {
-        if (window.innerWidth - e.pageX < 40) {
-            document.body.classList.add('is-hovering-right');
-        } else {
-            document.body.classList.remove('is-hovering-right');
-        }
-    }
-
-    // --- 核心：作品点击放大逻辑 ---
-    function handleItemClick(e, el) {
-        e.stopPropagation();
-        const wasActive = el.classList.contains('active');
-        // 清除其他
-        document.querySelectorAll('.item.active').forEach(item => {
-            item.classList.remove('active');
-            const v = item.querySelector('video'); if(v) v.pause();
-        });
-        // 激活当前
-        if (!wasActive) {
-            el.classList.add('active');
-            const v = el.querySelector('video'); if(v) v.play();
-        }
-    }
-
-    // --- 导航与边框联动 (Scroll Spy) ---
+    // --- 1. 高亮联动逻辑 ---
     function initScrollSpy() {
         const sections = document.querySelectorAll('section, header');
         const navLinks = document.querySelectorAll('#smart-nav a');
@@ -198,14 +179,14 @@
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     const id = entry.target.id;
-                    // 高亮导航
+                    // 更新右上角导航高亮
                     navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('data-sec') === id));
-                    // 高亮边框
+                    // 更新页面内边框高亮
                     Object.values(cards).forEach(c => c?.classList.remove('highlight-border'));
                     if (cards[id]) cards[id].classList.add('highlight-border');
                 }
             });
-        }, { rootMargin: '-30% 0px -60% 0px' });
+        }, { rootMargin: '-40% 0px -40% 0px', threshold: 0 });
 
         sections.forEach(s => observer.observe(s));
     }
@@ -215,7 +196,30 @@
         if (el) window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
     }
 
-    // --- 弹窗逻辑修复 ---
+    // --- 3. 作品点击放大核心逻辑 ---
+    function handleItemClick(e, el, forceExpand = false) {
+        if(e) e.stopPropagation();
+        
+        const wasActive = el.classList.contains('active');
+        
+        // 如果不是强制模式且已经是放大状态，则收起
+        if (wasActive && !forceExpand) {
+            el.classList.remove('active');
+            const v = el.querySelector('video'); if(v) v.pause();
+            return;
+        }
+
+        // 否则：清除其他所有放大状态，放大当前这一个
+        document.querySelectorAll('.item.active').forEach(item => {
+            item.classList.remove('active');
+            const v = item.querySelector('video'); if(v) v.pause();
+        });
+
+        el.classList.add('active');
+        const v = el.querySelector('video'); if(v) { v.currentTime = 0; v.play(); }
+    }
+
+    // --- 弹窗逻辑 ---
     function toggleModal(show, targetId = null) {
         const m = document.getElementById('portfolio-modal');
         if (show) {
@@ -224,14 +228,14 @@
             setTimeout(() => {
                 m.classList.add('active');
                 if (targetId) {
-                    // 如果有目标ID，自动展开分类并高亮
                     const targetItem = document.querySelector(`[data-id="${targetId}"]`);
                     if (targetItem) {
-                        const parent = targetItem.closest('.accordion-item');
-                        parent.classList.add('open');
+                        // 展开分类
+                        targetItem.closest('.accordion-item').classList.add('open');
+                        // 强制放大
                         setTimeout(() => {
                             targetItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            handleItemClick({stopPropagation:()=>{}}, targetItem);
+                            handleItemClick(null, targetItem, true); 
                         }, 500);
                     }
                 }
@@ -267,7 +271,7 @@
                     <div class="item" onclick="toggleModal(true, '${uid}')">
                         <div class="item-inner">
                             <div class="media">
-                                ${item.type === 'video' ? `<video src="${item.url}" loop muted playsinline></video>` : `<img src="${item.url}">`}
+                                ${item.type === 'video' ? `<video src="${item.url}" loop muted playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>` : `<img src="${item.url}">`}
                             </div>
                             <div class="info">${item.title}</div>
                         </div>
@@ -283,8 +287,8 @@
         root.innerHTML = siteData.categories.map((cat, cIdx) => `
             <div class="accordion-item">
                 <div class="accordion-header" onclick="this.parentElement.classList.toggle('open')">
-                    <h3 style="margin:0; letter-spacing:2px;">${cat.name}</h3>
-                    <span>展开/收起</span>
+                    <h3 style="margin:0; letter-spacing:2px; font-size:1.1rem;">${cat.name}</h3>
+                    <span style="font-size:0.7rem; color:var(--accent)">EXPLORE</span>
                 </div>
                 <div class="accordion-content">
                     <div class="grid">
@@ -304,7 +308,6 @@
         `).join('');
     }
 
-    // 初始化
     window.addEventListener('load', () => {
         if (sessionStorage.getItem('isRefreshing')) {
             sessionStorage.removeItem('isRefreshing');
@@ -328,8 +331,6 @@
     }
 
     function manualTriggerRefresh() { window.scrollTo({top:0, behavior:'smooth'}); setTimeout(triggerRefreshAnimation, 400); }
-
-    document.getElementById('resume-dl-btn').onclick = () => { /* 下载逻辑 */ };
 </script>
 </body>
 </html>
