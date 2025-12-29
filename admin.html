@@ -2,44 +2,67 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>JLWLIMOU 后台管理</title>
+    <title>JLWLIMOU 细化管理后台</title>
     <style>
-        body { background: #0f0f0f; color: #fff; font-family: sans-serif; padding: 20px; display: flex; justify-content: center; }
+        body { background: #0f0f0f; color: #fff; font-family: -apple-system, sans-serif; padding: 20px; display: flex; justify-content: center; }
         .box { width: 100%; max-width: 500px; background: #1a1a1a; padding: 25px; border-radius: 12px; border: 1px solid #333; }
-        input, textarea { width: 100%; padding: 10px; margin: 10px 0; background: #000; border: 1px solid #444; color: #fff; border-radius: 4px; box-sizing: border-box; }
-        button { background: #ffcc00; color: #000; border: none; padding: 15px; width: 100%; cursor: pointer; font-weight: bold; border-radius: 4px; margin-top: 20px; }
-        .file-zone { background: #222; padding: 15px; border: 1px dashed #444; margin-top: 15px; }
-        label { font-size: 0.8rem; color: #888; }
+        h2 { color: #ffcc00; font-size: 1.2rem; margin-bottom: 20px; border-left: 4px solid #ffcc00; padding-left: 15px; }
+        .input-group { margin-bottom: 20px; padding: 15px; background: #222; border-radius: 8px; }
+        label { display: block; font-size: 0.8rem; color: #ffcc00; margin-bottom: 8px; text-transform: uppercase; font-weight: bold; }
+        input, textarea { width: 100%; padding: 10px; background: #000; border: 1px solid #444; color: #fff; border-radius: 4px; box-sizing: border-box; }
+        input:focus, textarea:focus { border-color: #ffcc00; outline: none; }
+        button { background: #ffcc00; color: #000; border: none; padding: 15px; width: 100%; cursor: pointer; font-weight: bold; border-radius: 4px; margin-top: 10px; transition: 0.3s; }
+        button:hover { background: #fff; transform: translateY(-2px); }
+        #msg { margin-top: 15px; font-size: 0.9rem; text-align: center; color: #888; }
+        .hint { font-size: 0.7rem; color: #666; margin-top: 5px; }
     </style>
 </head>
 <body>
     <div class="box">
-        <h2>全能编辑器</h2>
-        <input type="password" id="token" placeholder="粘贴 GitHub Token">
+        <h2>内容精细化管理</h2>
         
-        <label>联系方式更新</label>
-        <input type="text" id="email" placeholder="新 QQ 邮箱">
-        <input type="text" id="phone" placeholder="新 电话号码">
-        <textarea id="about" rows="3" placeholder="新 自我介绍"></textarea>
-
-        <div class="file-zone">
-            <label>上传作品/简历 (选填)</label>
-            <input type="file" id="resFile" accept=".pdf">
-            <p style="font-size:0.7rem">上传 PDF 会自动替换简历</p>
-            <input type="file" id="workFile" accept=".mp4,.jpg">
-            <p style="font-size:0.7rem">上传作品将存为 work1.mp4 或 render1.jpg</p>
+        <div class="input-group">
+            <label>🔐 身份验证</label>
+            <input type="password" id="token" placeholder="输入 GitHub Token (ghp_...)">
         </div>
 
-        <button onclick="doUpdate()">同步更新</button>
+        <div class="input-group">
+            <label>📧 邮箱修改</label>
+            <input type="text" id="email" placeholder="输入新 QQ 邮箱">
+            <p class="hint">对应主页：联系方式 - QQ 邮箱</p>
+        </div>
+
+        <div class="input-group">
+            <label>📞 电话修改</label>
+            <input type="text" id="phone" placeholder="输入新 电话号码">
+            <p class="hint">对应主页：联系方式 - 电话号码</p>
+        </div>
+
+        <div class="input-group">
+            <label>📝 个人简介修改</label>
+            <textarea id="about" rows="3" placeholder="输入新的自我介绍..."></textarea>
+            <p class="hint">对应主页：置顶 Hero 区域的文字</p>
+        </div>
+
+        <div class="input-group">
+            <label>📁 媒体文件更新</label>
+            <input type="file" id="resFile" accept=".pdf" style="margin-bottom:10px;">
+            <input type="file" id="workFile" accept=".mp4,.jpg">
+            <p class="hint">PDF 自动关联简历，MP4/JPG 关联作品位</p>
+        </div>
+
+        <button onclick="doUpdate()">确认并发布更新</button>
         <p id="msg"></p>
     </div>
 
     <script>
+        // 文件转Base64辅助
         const toBase64 = f => new Promise((res, rej) => {
             const r = new FileReader(); r.readAsDataURL(f);
             r.onload = () => res(r.result.split(',')[1]); r.onerror = e => rej(e);
         });
 
+        // 通用文件上传函数
         async function uploadFile(token, name, b64) {
             const url = `https://api.github.com/repos/JLWLIMOU/jlwlimou.github.io/contents/${name}`;
             const r = await fetch(url, {headers:{'Authorization':`token ${token}`}});
@@ -47,49 +70,65 @@
             return fetch(url, {
                 method: 'PUT',
                 headers: {'Authorization':`token ${token}`},
-                body: JSON.stringify({message: 'Upload '+name, content: b64, sha: d.sha})
+                body: JSON.stringify({message: 'Upload '+name, content: b64, sha: d.sha || null})
             });
         }
 
         async function doUpdate() {
             const t = document.getElementById('token').value;
             const m = document.getElementById('msg');
-            if(!t) return alert('Token!');
-            m.innerText = '正在更新...';
+            if(!t) return alert('请先输入 Token！');
+            m.innerText = '🚀 正在同步数据到 GitHub...';
 
             try {
-                // 1. 更新文字
+                // 1. 获取主页源代码
                 const url = `https://api.github.com/repos/JLWLIMOU/jlwlimou.github.io/contents/index.html`;
                 const r = await fetch(url, {headers:{'Authorization':`token ${t}`}});
                 const d = await r.json();
                 let c = decodeURIComponent(escape(atob(d.content)));
 
-                const e = document.getElementById('email').value;
-                const p = document.getElementById('phone').value;
-                const a = document.getElementById('about').value;
+                // 2. 依次读取输入框，有内容才替换
+                const newEmail = document.getElementById('email').value;
+                const newPhone = document.getElementById('phone').value;
+                const newAbout = document.getElementById('about').value;
 
-                if(e) c = c.replace(/id="email-val">.*?<\/span>/, `id="email-val">${e}</span>`);
-                if(p) c = c.replace(/id="phone-val">.*?<\/span>/, `id="phone-val">${p}</span>`);
-                if(a) c = c.replace(/id="about-text">.*?<\/p>/, `id="about-text">${a}</p>`);
+                if(newEmail) {
+                    c = c.replace(/id="email-val">.*?<\/span>/, `id="email-val">${newEmail}</span>`);
+                }
+                if(newPhone) {
+                    c = c.replace(/id="phone-val">.*?<\/span>/, `id="phone-val">${newPhone}</span>`);
+                }
+                if(newAbout) {
+                    c = c.replace(/id="about-text">.*?<\/p>/, `id="about-text">${newAbout}</p>`);
+                }
 
+                // 3. 提交文字修改
                 await fetch(url, {
                     method: 'PUT',
                     headers: {'Authorization':`token ${t}`},
-                    body: JSON.stringify({message: 'Update text', content: b64=btoa(unescape(encodeURIComponent(c))), sha: d.sha})
+                    body: JSON.stringify({
+                        message: 'Fine-grained content update', 
+                        content: btoa(unescape(encodeURIComponent(c))), 
+                        sha: d.sha
+                    })
                 });
 
-                // 2. 更新文件
+                // 4. 处理文件上传
                 const rf = document.getElementById('resFile').files[0];
                 if(rf) await uploadFile(t, 'resume.pdf', await toBase64(rf));
                 
                 const wf = document.getElementById('workFile').files[0];
                 if(wf) {
-                    const name = wf.type.includes('video') ? 'work1.mp4' : 'render1.jpg';
-                    await uploadFile(t, name, await toBase64(wf));
+                    const fileName = wf.type.includes('video') ? 'work1.mp4' : 'render1.jpg';
+                    await uploadFile(t, fileName, await toBase64(wf));
                 }
 
-                m.innerText = '✅ 更新成功！';
-            } catch(e) { m.innerText = '❌ 失败，请检查 Token'; }
+                m.style.color = "#00ff00";
+                m.innerText = '✅ 所有内容已成功更新！网页生效约需 1 分钟。';
+            } catch(e) { 
+                m.style.color = "#ff4444";
+                m.innerText = '❌ 更新失败，请检查 Token 权限。'; 
+            }
         }
     </script>
 </body>
