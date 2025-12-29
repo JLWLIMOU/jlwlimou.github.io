@@ -3,234 +3,252 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>JLWLIMOU | Maya Animation Portfolio</title>
+    <title>JLWLIMOU | Animation Portfolio</title>
     <style>
         :root {
             --accent: #ffcc00;
             --bg: #050505;
-            --panel: #121212;
+            --drawer-bg: #0d0d0d;
+            --panel: #161616;
             --text: #ffffff;
-            --text-dim: #888888;
-            --ease: cubic-bezier(0.23, 1, 0.32, 1);
+            --text-dim: #666;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* 基础重置 */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { 
             margin: 0; padding: 0; background: var(--bg); color: var(--text);
-            font-family: "Inter", system-ui, -apple-system, sans-serif;
-            overflow-x: hidden; scroll-behavior: smooth;
-            user-select: none; -webkit-user-select: none;
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow-x: hidden; user-select: none;
         }
 
-        /* 隐藏滚动条 */
-        ::-webkit-scrollbar { display: none; }
-
-        /* 导航 */
+        /* --- 导航栏 --- */
         nav {
             position: fixed; top: 0; width: 100%; z-index: 1000;
-            padding: 30px 5%; display: flex; justify-content: space-between; align-items: center;
-            background: linear-gradient(to bottom, rgba(5,5,5,0.8), transparent);
-            backdrop-filter: blur(10px);
+            padding: 25px 5%; display: flex; justify-content: space-between; align-items: center;
+            background: rgba(5,5,5,0.7); backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-        .logo { font-weight: 900; letter-spacing: 4px; font-size: 1.2rem; }
-        .nav-links { display: flex; gap: 30px; }
-        .nav-links a { 
-            color: var(--text-dim); text-decoration: none; font-size: 0.8rem; 
-            text-transform: uppercase; letter-spacing: 2px; transition: 0.3s; cursor: pointer;
+        .logo { font-weight: 900; letter-spacing: 3px; cursor: pointer; }
+        .nav-right { display: flex; gap: 30px; align-items: center; }
+        .nav-btn { 
+            color: var(--text); text-decoration: none; font-size: 0.8rem; 
+            letter-spacing: 1px; cursor: pointer; transition: 0.3s;
         }
-        .nav-links a:hover { color: var(--accent); }
+        .nav-btn:hover { color: var(--accent); }
+        .library-trigger {
+            background: var(--accent); color: #000; padding: 8px 16px;
+            border-radius: 4px; font-weight: bold;
+        }
 
-        /* 英雄版块 */
-        .hero {
-            height: 80vh; display: flex; flex-direction: column; justify-content: center;
-            padding: 0 8%; max-width: 1200px;
-        }
-        .hero h1 { font-size: clamp(3rem, 10vw, 6rem); margin: 0; line-height: 0.9; font-weight: 800; letter-spacing: -3px; }
-        .hero p { color: var(--text-dim); max-width: 500px; margin-top: 30px; font-size: 1.1rem; line-height: 1.6; }
+        /* --- 英雄版块 --- */
+        .hero { height: 70vh; display: flex; flex-direction: column; justify-content: center; padding: 0 8%; }
+        .hero h1 { font-size: clamp(3rem, 10vw, 6rem); margin: 0; font-weight: 800; letter-spacing: -2px; line-height: 0.9; }
+        .hero p { color: var(--text-dim); max-width: 500px; margin-top: 25px; font-size: 1.1rem; line-height: 1.6; }
 
-        /* 作品网格 */
+        /* --- 主作品展示区 --- */
         .container { padding: 0 5% 100px; }
-        .section-title { font-size: 0.7rem; letter-spacing: 5px; color: var(--accent); margin-bottom: 40px; text-transform: uppercase; }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-            gap: 20px;
-        }
+        .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; }
+        .section-title { font-size: 0.7rem; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; }
 
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 25px; }
         .card {
-            position: relative; background: var(--panel); border-radius: 4px; overflow: hidden;
-            aspect-ratio: 16/9; cursor: pointer; transition: transform 0.6s var(--ease);
+            background: var(--panel); border-radius: 8px; overflow: hidden;
+            aspect-ratio: 16/10; cursor: pointer; transition: 0.4s var(--ease);
+            position: relative;
         }
-        .card:hover { transform: translateY(-10px); }
-        .card img, .card video { width: 100%; height: 100%; object-fit: cover; transition: 0.6s var(--ease); }
-        .card:hover img, .card:hover video { transform: scale(1.05); }
-        
-        .card-info {
-            position: absolute; inset: 0; background: rgba(0,0,0,0.4);
-            display: flex; align-items: flex-end; padding: 30px; opacity: 0; transition: 0.3s;
+        .card:hover { transform: scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .card img, .card video { width: 100%; height: 100%; object-fit: cover; }
+        .card-meta {
+            position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            opacity: 0; transition: 0.3s;
         }
-        .card:hover .card-info { opacity: 1; }
-        .card-info h3 { margin: 0; font-size: 1rem; letter-spacing: 1px; }
+        .card:hover .card-meta { opacity: 1; }
 
-        /* 全屏灯箱 (大图预览) */
+        /* --- 作品抽屉 (Side Drawer) --- */
+        #drawer {
+            position: fixed; inset: 0; z-index: 2000;
+            visibility: hidden; pointer-events: none;
+        }
+        #drawer.active { visibility: visible; pointer-events: all; }
+        .drawer-overlay { 
+            position: absolute; inset: 0; background: rgba(0,0,0,0.8); 
+            backdrop-filter: blur(10px); opacity: 0; transition: 0.5s;
+        }
+        #drawer.active .drawer-overlay { opacity: 1; }
+        
+        .drawer-content {
+            position: absolute; right: 0; top: 0; width: 450px; height: 100%;
+            background: var(--drawer-bg); transform: translateX(100%);
+            transition: 0.5s var(--ease); padding: 60px 40px;
+            overflow-y: auto; box-shadow: -10px 0 50px rgba(0,0,0,0.5);
+        }
+        #drawer.active .drawer-content { transform: translateX(0); }
+        .drawer-close { position: absolute; top: 25px; right: 25px; cursor: pointer; font-size: 1.5rem; }
+        
+        .drawer-cat { margin-bottom: 40px; }
+        .drawer-cat-name { color: var(--accent); font-size: 0.7rem; letter-spacing: 2px; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        .drawer-item { 
+            padding: 12px 0; border-bottom: 1px solid #1a1a1a; cursor: pointer; 
+            display: flex; justify-content: space-between; transition: 0.3s;
+        }
+        .drawer-item:hover { color: var(--accent); padding-left: 10px; }
+        .drawer-item span { color: var(--text-dim); font-size: 0.8rem; }
+
+        /* --- 全屏灯箱播放器 --- */
         #viewer {
-            position: fixed; inset: 0; background: #000; z-index: 2000;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.4s var(--ease);
+            position: fixed; inset: 0; background: #000; z-index: 3000;
+            display: none; align-items: center; justify-content: center; opacity: 0; transition: 0.4s;
         }
         #viewer.active { display: flex; opacity: 1; }
-        .viewer-content { width: 90%; height: 80%; display: flex; align-items: center; justify-content: center; }
-        .viewer-content img, .viewer-content video { max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 20px 80px rgba(0,0,0,0.5); }
-        .viewer-close { position: absolute; top: 40px; right: 40px; font-size: 2rem; cursor: pointer; color: var(--accent); }
-        .viewer-info { margin-top: 20px; text-align: center; }
+        .viewer-close { position: absolute; top: 30px; right: 30px; font-size: 2.5rem; cursor: pointer; z-index: 10; }
+        .viewer-box { width: 90%; height: 85%; display: flex; align-items: center; justify-content: center; }
+        .viewer-box img, .viewer-box video { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-        /* 简历与联系 */
-        .footer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-top: 100px; border-top: 1px solid #222; padding-top: 60px; }
-        .contact-link { font-size: 2rem; color: var(--text); text-decoration: none; display: block; margin-bottom: 10px; transition: 0.3s; font-weight: 700; }
-        .contact-link:hover { color: var(--accent); padding-left: 10px; }
+        /* --- 底部 --- */
+        footer { padding: 100px 8% 50px; border-top: 1px solid #1a1a1a; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .contact-link { font-size: 1.8rem; font-weight: 800; color: var(--text); text-decoration: none; display: block; margin: 10px 0; transition: 0.3s; }
+        .contact-link:hover { color: var(--accent); }
 
         @media (max-width: 768px) {
+            .drawer-content { width: 100%; }
             .grid { grid-template-columns: 1fr; }
-            .hero h1 { font-size: 3.5rem; }
-            .footer-grid { grid-template-columns: 1fr; }
-            .viewer-close { top: 20px; right: 20px; }
+            footer { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
 <nav>
-    <div class="logo">JLWLIMOU.</div>
-    <div class="nav-links">
-        <a onclick="scrollToSection('featured')">Work</a>
-        <a onclick="scrollToSection('about')">Resume</a>
-        <a onclick="scrollToSection('contact')">Contact</a>
+    <div class="logo" onclick="window.scrollTo({top:0, behavior:'smooth'})">JLWLIMOU.</div>
+    <div class="nav-right">
+        <div class="nav-btn" onclick="scrollToSection('contact')">Contact</div>
+        <div class="nav-btn library-trigger" onclick="toggleDrawer(true)">ALL PROJECTS</div>
     </div>
 </nav>
 
-<main>
-    <section class="hero" id="home">
-        <h1>CREATIVE<br>ANIMATOR.</h1>
-        <p id="about-text">Loading insights into Maya animation and digital storytelling...</p>
-    </section>
+<section class="hero">
+    <h1>MAYA<br>ANIMATION.</h1>
+    <p id="about-text">Loading...</p>
+</section>
 
-    <div class="container">
-        <section id="featured">
-            <h2 class="section-title">SELECTED WORKS / 精选</h2>
-            <div id="grid-root" class="grid"></div>
-        </section>
-
-        <section id="about" style="margin-top: 150px;">
-            <h2 class="section-title">INFORMATION / 信息存档</h2>
-            <div class="footer-grid">
-                <div>
-                    <p style="color:var(--text-dim); text-transform:uppercase; letter-spacing:2px; font-size:0.7rem;">Curriculum Vitae</p>
-                    <a href="resume.pdf" download class="contact-link">DOWNLOAD CV.</a>
-                    <p id="experience-summary" style="color:var(--text-dim); line-height:1.6; margin-top:20px;"></p>
-                </div>
-                <div id="contact">
-                    <p style="color:var(--text-dim); text-transform:uppercase; letter-spacing:2px; font-size:0.7rem;">Get In Touch</p>
-                    <a href="" id="email-link" class="contact-link">SEND EMAIL.</a>
-                    <p id="phone-val" style="font-size: 1.5rem; margin:0;"></p>
-                </div>
-            </div>
-        </section>
+<div class="container">
+    <div class="section-header">
+        <h2 class="section-title">Featured Works / 精选作品</h2>
     </div>
-</main>
+    <div id="featured-grid" class="grid"></div>
+</div>
 
-<div id="viewer" onclick="closeViewer()">
-    <div class="viewer-close">&times;</div>
-    <div class="viewer-content" id="viewer-media"></div>
-    <div class="viewer-info">
-        <h2 id="viewer-title" style="margin:0; letter-spacing:2px;"></h2>
+<footer id="contact">
+    <div>
+        <span class="section-title">Information</span>
+        <a href="resume.pdf" download class="contact-link">DOWNLOAD CV.</a>
+        <p id="experience" style="color:var(--text-dim); line-height:1.6; max-width:400px;"></p>
     </div>
+    <div>
+        <span class="section-title">Contact</span>
+        <a id="email-val" href="#" class="contact-link">EMAIL ME.</a>
+        <p id="phone-val" style="font-size: 1.2rem; color: var(--text-dim);"></p>
+    </div>
+</footer>
+
+<div id="drawer">
+    <div class="drawer-overlay" onclick="toggleDrawer(false)"></div>
+    <div class="drawer-content">
+        <div class="drawer-close" onclick="toggleDrawer(false)">&times;</div>
+        <h2 style="margin-top:0; letter-spacing:2px;">LIBRARY</h2>
+        <div id="drawer-list"></div>
+    </div>
+</div>
+
+<div id="viewer">
+    <div class="viewer-close" onclick="closeViewer()">&times;</div>
+    <div class="viewer-box" id="viewer-media"></div>
 </div>
 
 <script>
     let siteData = null;
 
-    // 1. 初始化数据加载
     async function init() {
         try {
-            const response = await fetch('data.json');
-            siteData = await response.json();
-            renderSite();
-        } catch (err) {
-            console.error("Data load failed. Please check data.json structure.");
-        }
+            const res = await fetch('data.json');
+            siteData = await res.json();
+            render();
+        } catch(e) { console.error("Data error"); }
     }
 
-    // 2. 渲染页面
-    function renderSite() {
-        // 基础信息
+    function render() {
         document.getElementById('about-text').innerText = siteData.about;
-        document.getElementById('experience-summary').innerText = siteData.experience || "Focused on Maya high-end character animation.";
-        document.getElementById('email-link').innerText = siteData.email;
-        document.getElementById('email-link').href = `mailto:${siteData.email}`;
+        document.getElementById('experience').innerText = siteData.experience || "";
+        document.getElementById('email-val').innerText = siteData.email;
+        document.getElementById('email-val').href = `mailto:${siteData.email}`;
         document.getElementById('phone-val').innerText = siteData.phone || "";
 
-        // 作品列表平铺渲染 (大洗牌：取消折叠，直接瀑布流展示)
-        let gridHtml = '';
+        // 渲染主页精选 (Featured)
+        let featuredHtml = '';
+        let drawerHtml = '';
+
         siteData.categories.forEach(cat => {
+            // 抽屉结构
+            drawerHtml += `<div class="drawer-cat">
+                <div class="drawer-cat-name">${cat.name}</div>`;
+            
             cat.items.forEach(item => {
-                gridHtml += `
-                    <div class="card" onclick="openViewer('${item.url}', '${item.type}', '${item.title}')">
-                        ${item.type === 'video' 
-                            ? `<video src="${item.url}" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>` 
-                            : `<img src="${item.url}" loading="lazy">`}
-                        <div class="card-info">
-                            <h3>${item.title}</h3>
-                        </div>
-                    </div>
-                `;
+                // 主页精选
+                if(item.featured) {
+                    featuredHtml += `
+                        <div class="card" onclick="openViewer('${item.url}', '${item.type}')">
+                            ${item.type === 'video' 
+                                ? `<video src="${item.url}" muted loop playsinline onmouseover="this.play()" onmouseout="this.pause()"></video>` 
+                                : `<img src="${item.url}" loading="lazy">`}
+                            <div class="card-meta"><b>${item.title}</b></div>
+                        </div>`;
+                }
+                // 抽屉项
+                drawerHtml += `
+                    <div class="drawer-item" onclick="openViewer('${item.url}', '${item.type}')">
+                        ${item.title}
+                        <span>${item.type.toUpperCase()}</span>
+                    </div>`;
             });
+            drawerHtml += `</div>`;
         });
-        document.getElementById('grid-root').innerHTML = gridHtml;
+
+        document.getElementById('featured-grid').innerHTML = featuredHtml;
+        document.getElementById('drawer-list').innerHTML = drawerHtml;
     }
 
-    // 3. 全屏预览逻辑 (核心功能)
-    function openViewer(url, type, title) {
-        const viewer = document.getElementById('viewer');
-        const mediaContainer = document.getElementById('viewer-media');
-        const titleContainer = document.getElementById('viewer-title');
+    function toggleDrawer(show) {
+        const d = document.getElementById('drawer');
+        if(show) d.classList.add('active');
+        else d.classList.remove('active');
+    }
 
-        mediaContainer.innerHTML = type === 'video' 
-            ? `<video src="${url}" controls autoplay playsinline style="width:100%; height:100%"></video>` 
+    function openViewer(url, type) {
+        const v = document.getElementById('viewer');
+        const box = document.getElementById('viewer-media');
+        box.innerHTML = type === 'video' 
+            ? `<video src="${url}" controls autoplay playsinline></video>` 
             : `<img src="${url}">`;
-        
-        titleContainer.innerText = title;
-        viewer.style.display = 'flex';
-        setTimeout(() => viewer.classList.add('active'), 10);
+        v.style.display = 'flex';
+        setTimeout(() => v.classList.add('active'), 10);
         document.body.style.overflow = 'hidden';
     }
 
     function closeViewer() {
-        const viewer = document.getElementById('viewer');
-        viewer.classList.remove('active');
+        const v = document.getElementById('viewer');
+        v.classList.remove('active');
         setTimeout(() => {
-            viewer.style.display = 'none';
+            v.style.display = 'none';
             document.getElementById('viewer-media').innerHTML = '';
         }, 400);
         document.body.style.overflow = 'auto';
     }
 
-    // 4. 平滑滚动
     function scrollToSection(id) {
-        const el = document.getElementById(id);
-        if (el) {
-            window.scrollTo({
-                top: el.offsetTop - 80,
-                behavior: 'smooth'
-            });
-        }
+        document.getElementById(id).scrollIntoView({behavior:'smooth'});
     }
-
-    // 5. 键盘支持
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeViewer();
-    });
 
     window.onload = init;
 </script>
