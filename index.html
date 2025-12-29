@@ -4,105 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>JLWLIMOU | Portfolio</title>
-    <script>
-        // 1. 全功能刷新置顶逻辑：多重保险方案
-        (function() {
-            if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
-            // 立即锁定页面
-            document.documentElement.style.opacity = "0";
-            
-            function forceTop() {
-                window.scrollTo(0, 0);
-                if (window.scrollY !== 0) {
-                    requestAnimationFrame(forceTop);
-                } else {
-                    // 确认置顶后延迟显示，防止视觉闪烁
-                    setTimeout(() => { document.documentElement.style.opacity = "1"; }, 50);
-                }
-            }
-            window.addEventListener('load', forceTop);
-            window.addEventListener('beforeunload', () => window.scrollTo(0, 0));
-        })();
-    </script>
+    
     <style>
+        /* 【全功能修复 1：初始锁定】防止刷新闪烁历史位置 */
+        body.is-loading {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; user-select: none; outline: none; }
         :root { --accent: #ffcc00; --bg: #0a0a0a; --text-dim: #888; --ease-out: cubic-bezier(0.2, 1, 0.3, 1); }
 
-        html { scrollbar-width: none; background: var(--bg); scroll-behavior: smooth; }
+        html { scrollbar-width: none; background: var(--bg); scroll-behavior: auto !important; } /* 初始关闭平滑滚动防止干扰置顶 */
         html::-webkit-scrollbar { display: none; }
-        body { background: var(--bg); color: #e0e0e0; font-family: system-ui, -apple-system, sans-serif; margin: 0; overflow-x: hidden; }
+        body { background: var(--bg); color: #e0e0e0; font-family: system-ui, -apple-system, sans-serif; margin: 0; overflow-x: hidden; opacity: 0; transition: opacity 0.5s ease; }
         body.modal-open { overflow: hidden; height: 100vh; }
 
-        /* 导航 */
         nav { width: 100%; position: sticky; top: 0; background: rgba(10,10,10,0.85); backdrop-filter: blur(15px); border-bottom: 1px solid #222; z-index: 9000; }
         .nav-inner { padding: 15px 0; display: flex; justify-content: space-between; align-items: center; width: 92%; max-width: 1400px; margin: 0 auto; }
         .nav-links { display: flex; gap: 5px; }
-        .nav-links a { 
-            color: var(--text-dim); text-decoration: none; font-size: 0.85rem; cursor: pointer; 
-            transition: 0.3s; padding: 10px 15px; border-radius: 4px;
-        }
+        .nav-links a { color: var(--text-dim); text-decoration: none; font-size: 0.85rem; cursor: pointer; transition: 0.3s; padding: 10px 15px; border-radius: 4px; }
         .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.05); }
         .nav-links a.active { color: var(--accent); font-weight: bold; }
 
         .container { width: 92%; max-width: 1400px; margin: 0 auto; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
 
-        /* 通用高亮框 */
-        .highlight-target { 
-            transition: border-color 0.4s ease, box-shadow 0.4s ease; 
-            border: 1px solid #222; position: relative; cursor: pointer;
-        }
+        .highlight-target { transition: border-color 0.4s ease, box-shadow 0.4s ease; border: 1px solid #222; position: relative; cursor: pointer; }
         .highlight-target:hover { border-color: var(--accent); box-shadow: 0 0 30px rgba(255, 204, 0, 0.15); }
 
-        /* 作品项逻辑：支持 100% 构图完整 */
-        .item { position: relative; aspect-ratio: 16/10; z-index: 1; perspective: 1000px; }
+        /* 【全功能修复 2：原地展开】消除回弹，确保绝对 scale(1) 起跳 */
+        .item { position: relative; aspect-ratio: 16/10; z-index: 1; }
         .item-inner { 
             position: absolute; inset: 0; background: #111; border: 1px solid #222; border-radius: 12px; 
-            overflow: hidden; transition: all 0.6s var(--ease-out); will-change: transform;
+            overflow: hidden; 
+            transition: transform 0.6s var(--ease-out), border-color 0.4s, box-shadow 0.6s;
+            transform: scale(1); /* 显式声明，防止起跳缩放 */
+            will-change: transform;
+            z-index: 1;
         }
         .item.active { z-index: 500; }
         .item.active .item-inner { 
-            border-color: var(--accent); transform: scale(1.15); 
-            box-shadow: 0 40px 80px rgba(0,0,0,0.95); background: #000;
+            border-color: var(--accent); 
+            transform: scale(1.15); /* 原地向外平滑展开 */
+            box-shadow: 0 40px 80px rgba(0,0,0,0.9); 
+            z-index: 501;
         }
 
-        .media { width: 100%; height: 100%; position: relative; }
-        .media video, .media img { 
-            width: 100%; height: 100%; object-fit: cover; display: block; transition: object-fit 0.4s;
-        }
-        /* 激活时强制显示完整比例 */
+        .media { width: 100%; height: 100%; background: #000; }
+        .media video, .media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: object-fit 0.4s; }
         .item.active .media video, .item.active .media img { object-fit: contain; }
 
         .info { 
             position: absolute; bottom: 0; left: 0; width: 100%; padding: 25px 20px;
             background: linear-gradient(transparent, rgba(0,0,0,0.95));
             color: #fff; font-size: 0.9rem; text-align: center;
-            opacity: 0; transform: translateY(15px); transition: 0.4s 0.2s; /* 延迟浮现 */
+            opacity: 0; transform: translateY(10px); transition: 0.4s 0.2s; 
             pointer-events: none;
         }
         .item.active .info { opacity: 1; transform: translateY(0); }
 
-        /* 弹窗库 */
         #portfolio-modal { 
             visibility: hidden; position: fixed; inset: 0; background: var(--bg); z-index: 10000; 
-            transform: translateY(60px); opacity: 0; 
+            transform: translateY(100%); opacity: 0; 
             transition: transform 0.6s var(--ease-out), opacity 0.4s, visibility 0.6s; 
-            overflow-y: scroll; scroll-behavior: smooth;
+            overflow-y: scroll;
         }
         #portfolio-modal.active { visibility: visible; transform: translateY(0); opacity: 1; }
         
-        /* 手风琴库 */
         .accordion-content { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.8s var(--ease-out), opacity 0.5s; }
         .accordion-item.open .accordion-content { opacity: 1; }
-        
-        .dl-link { 
-            display: inline-block; color: #fff; text-decoration: none; font-weight: bold; 
-            border-bottom: 2px solid var(--accent); padding-bottom: 4px; transition: 0.3s;
-        }
-        .dl-link:hover { color: var(--accent); border-color: #fff; }
     </style>
 </head>
-<body>
+<body class="is-loading">
 
 <div id="page-wrapper">
     <nav>
@@ -135,12 +111,12 @@
         <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:30px; padding-bottom: 300px;">
             <section id="resume" class="highlight-target" style="padding:60px; border-radius:16px;">
                 <span style="color:var(--accent); font-size:0.7rem; display:block; margin-bottom:20px; letter-spacing:3px;">RESUME / CV</span>
-                <a href="resume.pdf" target="_blank" class="dl-link">DOWNLOAD PDF</a>
+                <a href="resume.pdf" target="_blank" style="color:#fff; font-weight:bold; border-bottom:2px solid var(--accent); text-decoration:none; padding-bottom:4px;">DOWNLOAD PDF</a>
             </section>
             <section id="contact" class="highlight-target" style="padding:60px; border-radius:16px;">
                 <span style="color:var(--accent); font-size:0.7rem; display:block; margin-bottom:20px; letter-spacing:3px;">GET IN TOUCH</span>
-                <div style="margin-bottom:15px;"><small style="color:#444;">EMAIL</small><br><span id="email-val" style="font-size:1.1rem;">-</span></div>
-                <div><small style="color:#444;">PHONE</small><br><span id="phone-val" style="font-size:1.1rem;">-</span></div>
+                <div style="margin-bottom:15px;"><small style="color:#444;">EMAIL</small><br><span id="email-val">-</span></div>
+                <div><small style="color:#444;">PHONE</small><br><span id="phone-val">-</span></div>
             </section>
         </div>
     </div>
@@ -157,57 +133,59 @@
 </div>
 
 <script>
+    // 【全功能修复 3：最高优先级置顶逻辑】
+    (function() {
+        if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+        window.scrollTo(0, 0);
+        
+        window.addEventListener('load', () => {
+            // 多次强制确认置顶，绕过浏览器渲染队列
+            const force = () => {
+                window.scrollTo(0, 0);
+                if (window.scrollY > 0) {
+                    requestAnimationFrame(force);
+                } else {
+                    document.body.classList.remove('is-loading');
+                    document.body.style.opacity = "1";
+                    document.documentElement.style.scrollBehavior = "smooth";
+                }
+            };
+            force();
+        });
+    })();
+
     let siteData = null;
 
-    // 全功能初始化
     async function loadData() {
         try {
             const res = await fetch('data.json');
-            if (!res.ok) throw new Error();
             siteData = await res.json();
-            
             document.getElementById('about-text').innerText = siteData.about;
             document.getElementById('email-val').innerText = siteData.email;
             document.getElementById('phone-val').innerText = siteData.phone;
-            
             renderHome();
             renderAccordion();
-        } catch(e) { 
-            console.error("Data Load Failed"); 
-            document.getElementById('about-text').innerText = "Load data failed. Check data.json.";
-        }
+        } catch(e) { console.error("Load failed"); }
     }
 
-    // 全功能导航
     function handleNavClick(id) {
         if(document.body.classList.contains('modal-open')) toggleModal(false);
         const el = document.getElementById(id);
         if(!el) return;
-        
         const offset = (id === 'hero') ? 0 : el.offsetTop - 80;
         window.scrollTo({ top: offset, behavior: 'smooth' });
     }
 
-    // 联动逻辑：从首页直达弹窗内的具体项
     function openAndDetail(catIdx, title) {
         toggleModal(true);
-        // 等待弹窗动画
         setTimeout(() => {
             const itemWrap = document.getElementById(`cat-wrapper-${catIdx}`);
             if(!itemWrap) return;
-            
-            // 展开手风琴
-            if(!itemWrap.classList.contains('open')) {
-                const header = itemWrap.querySelector('.acc-header');
-                toggleAccordion(header);
-            }
-
-            // 滚动定位并激活
+            if(!itemWrap.classList.contains('open')) toggleAccordion(itemWrap.querySelector('.acc-header'));
             setTimeout(() => {
                 const target = itemWrap.querySelector(`.item[data-title="${title}"]`);
                 if(target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    // 模拟点击激活
                     setTimeout(() => handleItemClick(null, target), 500);
                 }
             }, 300);
@@ -219,12 +197,9 @@
         siteData.categories.forEach((cat, cIdx) => {
             cat.items.forEach(item => {
                 if (item.featured) {
-                    html += `
-                    <div class="item" onclick="openAndDetail(${cIdx}, '${item.title.replace(/'/g, "\\'")}')">
+                    html += `<div class="item" onclick="openAndDetail(${cIdx}, '${item.title}')">
                         <div class="item-inner">
-                            <div class="media">
-                                ${item.type === 'video' ? `<video src="${item.url}" loop muted playsinline></video>` : `<img src="${item.url}" loading="lazy">`}
-                            </div>
+                            <div class="media">${item.type === 'video' ? `<video src="${item.url}" loop muted playsinline></video>` : `<img src="${item.url}">`}</div>
                             <div class="info"><b>${item.title}</b></div>
                         </div>
                     </div>`;
@@ -238,17 +213,15 @@
         document.getElementById('accordion-root').innerHTML = siteData.categories.map((cat, idx) => `
             <div class="accordion-item" id="cat-wrapper-${idx}" style="border-bottom: 1px solid #222; margin-bottom:10px;">
                 <div class="acc-header" style="padding:35px 0; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleAccordion(this)">
-                    <h3 style="margin:0; font-size:1.3rem; letter-spacing:1px;">${cat.name}</h3>
-                    <span style="font-size:1.5rem; color:var(--accent); transition:0.3s">+</span>
+                    <h3 style="margin:0; font-size:1.3rem;">${cat.name}</h3>
+                    <span style="font-size:1.5rem; color:var(--accent)">+</span>
                 </div>
                 <div class="accordion-content">
                     <div class="grid" style="padding:20px 0 60px;">
                         ${cat.items.map(i => `
                             <div class="item" data-title="${i.title}" onclick="handleItemClick(event, this)">
                                 <div class="item-inner">
-                                    <div class="media">
-                                        ${i.type === 'video' ? `<video src="${i.url}" loop muted playsinline></video>` : `<img src="${i.url}" loading="lazy">`}
-                                    </div>
+                                    <div class="media">${i.type === 'video' ? `<video src="${i.url}" loop muted playsinline></video>` : `<img src="${i.url}">`}</div>
                                     <div class="info"><b>${i.title}</b></div>
                                 </div>
                             </div>
@@ -263,11 +236,9 @@
         const itemWrap = el.parentElement;
         const content = itemWrap.querySelector('.accordion-content');
         const isOpen = itemWrap.classList.contains('open');
-        
         itemWrap.classList.toggle('open', !isOpen);
         content.style.maxHeight = isOpen ? '0' : content.scrollHeight + 1000 + 'px';
-        el.querySelector('span').style.transform = isOpen ? 'rotate(0deg)' : 'rotate(45deg)';
-        el.querySelector('span').innerText = isOpen ? '+' : '+'; // 保持符号不变仅旋转或直接改符号
+        el.querySelector('span').innerText = isOpen ? '+' : '×';
     }
 
     function toggleModal(show) {
@@ -275,8 +246,7 @@
         m.classList.toggle('active', show);
         document.body.classList.toggle('modal-open', show);
         if(!show) {
-            // 全局静默：停止所有视频
-            document.querySelectorAll('video').forEach(v => { v.pause(); v.currentTime = 0; });
+            document.querySelectorAll('video').forEach(v => v.pause());
             document.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
         }
     }
@@ -284,37 +254,15 @@
     function handleItemClick(e, el) {
         if(e) e.stopPropagation();
         const isActive = el.classList.contains('active');
-        
-        // 排他逻辑
         document.querySelectorAll('.item').forEach(i => {
             i.classList.remove('active');
             const v = i.querySelector('video'); if(v) v.pause();
         });
-
         if(!isActive) {
             el.classList.add('active');
-            const v = el.querySelector('video'); 
-            if(v) { 
-                v.play().catch(() => console.log("Autoplay blocked")); 
-            }
+            const v = el.querySelector('video'); if(v) v.play();
         }
     }
-
-    // 滚动激活监听
-    window.addEventListener('scroll', () => {
-        if(document.body.classList.contains('modal-open')) return;
-        const sections = ['hero', 'featured', 'resume', 'contact'];
-        const scrollPos = window.scrollY + 200;
-
-        sections.forEach(id => {
-            const el = document.getElementById(id);
-            if(el && scrollPos >= el.offsetTop && scrollPos < el.offsetTop + el.offsetHeight) {
-                document.querySelectorAll('#smart-nav a').forEach(a => {
-                    a.classList.toggle('active', a.getAttribute('data-sec') === id);
-                });
-            }
-        });
-    });
 
     window.onload = loadData;
 </script>
