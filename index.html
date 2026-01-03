@@ -608,19 +608,100 @@
     let siteData = null;
 
     async function init() {
-        try {
-            const cacheBuster = new Date().getTime();
-            const res = await fetch(`data.json?v=${cacheBuster}`);
-            siteData = await res.json();
-            document.getElementById('about-text').innerText = siteData.about;
-            document.getElementById('exp-text').innerText = siteData.experience || "";
-            document.getElementById('email-link').innerText = siteData.email;
-            document.getElementById('email-link').href = `mailto:${siteData.email}`;
-            document.getElementById('phone-val').innerText = siteData.phone || "";
-            render();
-        } catch(e) { console.error("JSON Error:", e); }
+    try {
+        const cacheBuster = new Date().getTime();
+        const res = await fetch(`data.json?v=${cacheBuster}`);
+        siteData = await res.json();
+        
+        // 原有的基本信息设置
+        document.getElementById('about-text').innerText = siteData.about;
+        document.getElementById('exp-text').innerText = siteData.experience || "";
+        document.getElementById('email-link').innerText = siteData.email;
+        document.getElementById('email-link').href = `mailto:${siteData.email}`;
+        document.getElementById('phone-val').innerText = siteData.phone || "";
+        
+        // === 新添加的代码开始 ===
+        // 应用自定义文字
+        if (siteData.texts) {
+            // 1. 导航栏文字
+            const navLinks = document.querySelectorAll('.nav-links a');
+            if (navLinks.length >= 2) {
+                if (siteData.texts.navSelectedText) {
+                    navLinks[0].textContent = siteData.texts.navSelectedText;
+                }
+                if (siteData.texts.navContactText) {
+                    navLinks[1].textContent = siteData.texts.navContactText;
+                }
+            }
+            
+            // 2. 英雄区域标题
+            const heroH1 = document.querySelector('.hero h1');
+            if (heroH1 && siteData.texts.heroTitle) {
+                const subtitle = siteData.texts.heroSubtitle ? `<span>${siteData.texts.heroSubtitle}</span>` : '';
+                heroH1.innerHTML = siteData.texts.heroTitle + subtitle;
+            }
+            
+            // 3. 精选区域标题
+            const sectionTitle = document.querySelector('.section-title');
+            if (sectionTitle && siteData.texts.sectionTitle) {
+                sectionTitle.textContent = siteData.texts.sectionTitle;
+            }
+            
+            // 4. 查看所有作品按钮
+            const libTrigger = document.querySelector('.lib-trigger');
+            if (libTrigger && siteData.texts.libraryBtn) {
+                libTrigger.textContent = siteData.texts.libraryBtn;
+            }
+            
+            // 5. 作品库关闭按钮
+            const closeLib = document.querySelector('.close-lib');
+            if (closeLib && siteData.texts.closeLibrary) {
+                closeLib.textContent = siteData.texts.closeLibrary;
+            }
+            
+            // 6. 页脚文字
+            const footerTags = document.querySelectorAll('.footer-tag');
+            if (footerTags.length >= 2) {
+                if (siteData.texts.footerResumeTitle) {
+                    footerTags[0].textContent = siteData.texts.footerResumeTitle;
+                }
+                if (siteData.texts.footerContactTitle) {
+                    footerTags[1].textContent = siteData.texts.footerContactTitle;
+                }
+            }
+            
+            // 7. 下载简历按钮
+            const downloadCv = document.querySelector('.cv-link');
+            if (downloadCv && siteData.texts.downloadCv) {
+                downloadCv.textContent = siteData.texts.downloadCv;
+            }
+            
+            // 8. 发送邮件按钮
+            const emailButtons = document.querySelectorAll('.big-link');
+            if (emailButtons.length >= 2 && siteData.texts.emailMe) {
+                // 找到第二个.big-link（发送邮件按钮）
+                emailButtons[1].textContent = siteData.texts.emailMe;
+            }
+            
+            // 9. Toast提示文字
+            const toast = document.getElementById('toast');
+            if (toast && siteData.texts.toastDownload) {
+                toast.textContent = siteData.texts.toastDownload;
+            }
+            
+            // 10. 查看器下载按钮
+            const viewerDownload = document.querySelector('.viewer-download');
+            if (viewerDownload && siteData.texts.downloadSource) {
+                viewerDownload.textContent = siteData.texts.downloadSource;
+            }
+        }
+        // === 新添加的代码结束 ===
+        
+        render();
+    } catch(e) { 
+        console.error("JSON Error:", e); 
     }
-
+}
     function handleVideo(el, play) {
         const v = el.querySelector('video');
         if(!v) return;
