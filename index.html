@@ -607,7 +607,7 @@
 <script>
     let siteData = null;
 
-    async function init() {
+        async function init() {
     try {
         const cacheBuster = new Date().getTime();
         const res = await fetch(`data.json?v=${cacheBuster}`);
@@ -616,9 +616,29 @@
         // 原有的基本信息设置
         document.getElementById('about-text').innerText = siteData.about;
         document.getElementById('exp-text').innerText = siteData.experience || "";
-        document.getElementById('email-link').innerText = siteData.email;
-        document.getElementById('email-link').href = `mailto:${siteData.email}`;
-        document.getElementById('phone-val').innerText = siteData.phone || "";
+        
+        // === 修改的邮箱和电话设置开始 ===
+        // 邮箱设置 - 确保能正确显示
+        const emailLink = document.getElementById('email-link');
+        if (emailLink) {
+            // 优先使用自定义文字，如果没有则显示邮箱地址
+            if (siteData.texts && siteData.texts.emailMe) {
+                emailLink.textContent = siteData.texts.emailMe;
+            } else if (siteData.email) {
+                emailLink.textContent = siteData.email;
+            }
+            // 设置邮箱链接
+            if (siteData.email) {
+                emailLink.href = `mailto:${siteData.email}`;
+            }
+        }
+        
+        // 电话设置
+        const phoneVal = document.getElementById('phone-val');
+        if (phoneVal && siteData.phone) {
+            phoneVal.textContent = siteData.phone;
+        }
+        // === 修改的邮箱和电话设置结束 ===
         
         // === 新添加的代码开始 ===
         // 应用自定义文字
@@ -676,12 +696,8 @@
                 downloadCv.textContent = siteData.texts.downloadCv;
             }
             
-            // 8. 发送邮件按钮
-            const emailButtons = document.querySelectorAll('.big-link');
-            if (emailButtons.length >= 2 && siteData.texts.emailMe) {
-                // 找到第二个.big-link（发送邮件按钮）
-                emailButtons[1].textContent = siteData.texts.emailMe;
-            }
+            // 8. 发送邮件按钮 - 这里已经在上面的邮箱设置中处理了
+            // 所以这里不需要再处理
             
             // 9. Toast提示文字
             const toast = document.getElementById('toast');
