@@ -1145,29 +1145,30 @@
     }
 
     // 切换标签页
-    function setupTabs() {
-        const navItems = document.querySelectorAll('.nav-item');
-        const tabContents = document.querySelectorAll('.tab-content');
-        
-        navItems.forEach(item => {
-            item.addEventListener('click', function() {
-                const tabId = this.getAttribute('data-tab');
-                
-                // 更新导航状态
-                navItems.forEach(nav => nav.classList.remove('active'));
-                this.classList.add('active');
-                
-                // 更新内容显示
-                tabContents.forEach(content => content.classList.remove('active'));
-                document.getElementById(tabId).classList.add('active');
-                
-                // 如果是预览标签，更新JSON预览
-                if (tabId === 'preview') {
-                    updateJsonPreview();
-                }
-            });
+    // 切换标签页
+function setupTabs() {
+    const navItems = document.querySelectorAll('.nav-item');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    navItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const tabId = this.getAttribute('data-tab');
+            
+            // 更新导航状态
+            navItems.forEach(nav => nav.classList.remove('active'));
+            this.classList.add('active');
+            
+            // 更新内容显示
+            tabContents.forEach(content => content.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            // 如果是预览标签，更新JSON预览
+            if (tabId === 'preview') {
+                updateJsonPreview();
+            }
         });
-    }
+    });
+}
 
     // 显示状态消息
     function showStatus(message, type = "info") {
@@ -1214,25 +1215,6 @@
         setupTabs();
     });
 // 侧边栏导航交互
-document.addEventListener('DOMContentLoaded', function() {
-    // 为左侧导航项添加点击事件
-    const navItems = document.querySelectorAll('.nav-item');
-    const tabContents = document.querySelectorAll('.tab-content');
-    
-    navItems.forEach(item => {
-        item.addEventListener('click', function() {
-            const tabId = this.getAttribute('data-tab');
-            
-            // 移除所有active类
-            navItems.forEach(nav => nav.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
-            
-            // 添加active类到当前项
-            this.classList.add('active');
-            document.getElementById(tabId).classList.add('active');
-        });
-    });
-});
 </script>
 </body>
 </html>
