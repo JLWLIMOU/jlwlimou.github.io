@@ -1,4 +1,20 @@
 {
+  "texts": {
+    "navSelectedText": "作品精选 SELECTED",
+    "navContactText": "联系方式 CONTACT",
+    "heroTitle": "Maya 动画作品集",
+    "heroSubtitle": "MAYA ANIMATION SHOWCASE 2025.",
+    "sectionTitle": "SELECTED 精选作品展示",
+    "libraryBtn": "所有作品 LIBRARY",
+    "libraryTitle": "作品库 LIBRARY",
+    "closeLibrary": "关闭库 CLOSE [ESC]",
+    "footerResumeTitle": "个人简历 RESUME",
+    "downloadCv": "下载简历 DOWNLOAD CV.",
+    "footerContactTitle": "取得联系 CONTACT",
+    "emailMe": "发送邮件 EMAIL ME.",
+    "toastDownload": "文件下载已开始 / Download Started",
+    "downloadSource": "下载源文件 DOWNLOAD SOURCE"
+  },
   "categories": [
     {
       "name": "动画",
@@ -49,5 +65,6 @@
   ],
   "email": "3227481298@qq.com",
   "phone": "13627208879",
-  "about": "我是 JLWLIMOU。我正在登峰造极。"
+  "about": "我是 JLWLIMOU。我正在登峰造极。",
+  "experience": ""
 }
